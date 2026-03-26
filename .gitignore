@@ -18,6 +18,9 @@ Thumbs.db
 *.log
 logs/
 
+# Claude
+.claude/
+
 # Node
 node_modules/
 npm-debug.log
