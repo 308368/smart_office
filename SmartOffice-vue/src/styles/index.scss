@@ -1,0 +1,177 @@
+// 颜色变量
+$primary: #10B981;
+$primary-light: #059669;
+$primary-dark: #047857;
+$primary-bg: #ECFDF5;
+
+$success: #10B981;
+$warning: #F59E0B;
+$danger: #EF4444;
+$info: #3B82F6;
+
+// 通用样式
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  color: #1F2937;
+  background-color: #F3F4F6;
+}
+
+// 主题色覆盖
+.el-button--primary {
+  --el-button-bg-color: #10B981;
+  --el-button-border-color: #10B981;
+  --el-button-hover-bg-color: #059669;
+  --el-button-hover-border-color: #059669;
+  --el-button-active-bg-color: #047857;
+  --el-button-active-border-color: #047857;
+}
+
+// 页面容器
+.page-container {
+  padding: 24px;
+}
+
+// 卡片样式
+.page-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+// 页面标题
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1F2937;
+  }
+}
+
+// 表格样式
+.el-table {
+  --el-table-border-color: #E5E7EB;
+  --el-table-header-bg-color: #F9FAFB;
+
+  th.el-table__cell {
+    color: #4B5563;
+    font-weight: 600;
+  }
+
+  tr:hover > td.el-table__cell {
+    background-color: #ECFDF5 !important;
+  }
+}
+
+// 表单样式
+.el-form-item__label {
+  color: #4B5563;
+}
+
+// 标签样式
+.el-tag--success {
+  --el-tag-bg-color: #ECFDF5;
+  --el-tag-border-color: #A7F3D0;
+  --el-tag-text-color: #059669;
+}
+
+.el-tag--warning {
+  --el-tag-bg-color: #FEF3C7;
+  --el-tag-border-color: #FDE68A;
+  --el-tag-text-color: #D97706;
+}
+
+.el-tag--danger {
+  --el-tag-bg-color: #FEE2E2;
+  --el-tag-border-color: #FECACA;
+  --el-tag-text-color: #DC2626;
+}
+
+.el-tag--info {
+  --el-tag-bg-color: #DBEAFE;
+  --el-tag-border-color: #BFDBFE;
+  --el-tag-text-color: #2563EB;
+}
+
+// 消息框样式
+.el-message {
+  --el-message-bg-color: #ECFDF5;
+  --el-message-border-color: #10B981;
+}
+
+// 菜单样式
+.el-menu {
+  border-right: none;
+}
+
+.el-menu-item.is-active {
+  background-color: #ECFDF5 !important;
+  color: #10B981 !important;
+}
+
+.el-menu-item:hover {
+  background-color: #F0FDF4 !important;
+}
+
+// 分页样式
+.el-pagination {
+  --el-pagination-button-bg-color: #FFFFFF;
+  --el-pagination-button-color: #4B5563;
+  --el-pagination-hover-color: #10B981;
+}
+
+// 输入框样式
+.el-input__wrapper {
+  border-radius: 6px;
+}
+
+.el-input__wrapper:focus-within {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+  border-color: #10B981 !important;
+}
+
+// 对话框样式
+.el-dialog {
+  border-radius: 12px;
+}
+
+.el-dialog__header {
+  border-bottom: 1px solid #E5E7EB;
+  padding-bottom: 16px;
+}
+
+// 滚动条样式
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F3F4F6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}

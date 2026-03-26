@@ -1,0 +1,29 @@
+# Maven
+target/
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# SmartOffice specific
+SmartOffice/smart-office-gateway/target/
+SmartOffice/auth-service/target/
+SmartOffice/smart-office-common/target/
