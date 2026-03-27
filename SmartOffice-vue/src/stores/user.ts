@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { RouteRecordRaw } from 'vue-router'
-import { login, getUserInfo, logout } from '@/api/user'
+import { login, getUserInfo as getUserInfoApi, logout } from '@/api/user'
 
 interface UserInfo {
   userId: number
@@ -112,7 +112,8 @@ export const useUserStore = defineStore('user', () => {
 
     // 真实接口调用（后端开发完成后使用）
     try {
-      const res = await getUserInfo()
+      const res = await getUserInfoApi()
+      
       const data = res.data
       userId.value = data.userId
       username.value = data.username

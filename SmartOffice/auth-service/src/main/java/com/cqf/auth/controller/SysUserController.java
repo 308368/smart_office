@@ -1,6 +1,9 @@
 package com.cqf.auth.controller;
 
 import com.cqf.auth.model.vo.UserInfo;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,6 +28,7 @@ public class SysUserController {
      * 获取当前用户信息
      */
     @GetMapping("/ucenter/info")
+    @PreAuthorize("hasAuthority('dashboard:view')")
     public Result<UserInfo> info(Authentication authentication) {
         String username = authentication.getName();
         SysUser user = service.getOne(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysUser>()

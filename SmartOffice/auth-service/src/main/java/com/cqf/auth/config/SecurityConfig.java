@@ -43,9 +43,12 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
+    public SecurityConfig(CustomUserDetailsService customUserDetailsService,
+                         JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.customUserDetailsService = customUserDetailsService;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     /**
@@ -83,6 +86,8 @@ public class SecurityConfig {
         http
                 // 禁用CSRF
                 .csrf(csrf -> csrf.disable())
+                // 配置CORS
+                .cors(cors -> {})
                 // 不使用Session
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 配置认证 Provider
@@ -114,8 +119,20 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 登录接口放行
                         .requestMatchers("/ucenter/login", "/ucenter/register").permitAll()
+                        // OPTIONS 请求放行（CORS预检）
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         // 其他请求需要认证
                         .anyRequest().authenticated()
+                )
+                // 添加 JWT 过滤器
+                .addFilterBefore(jwtAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+                // 自定义未认证时的返回内容（不重定向）
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.setStatus(401);
+                            response.getWriter().write("{\"code\":401,\"msg\":\"未登录\"}");
+                        })
                 );
 
         return http.build();

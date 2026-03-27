@@ -1,20 +1,21 @@
 import request from '@/utils/request'
 
 // 登录
-export const login = (data: { username: string; password: string }) => {
-  return request({
-    url: '/ucenter/login',
-    method: 'post',
-    data
-  })
+// export const login = (data: { username: string; password: string }) => {
+//   return request({
+//     url: '/ucenter/login',
+//     method: 'post',
+//     data
+//   })
+// }
+// 登录
+export const login = (params: any) => {
+  return request.post('/ucenter/login', null, { params })
 }
 
 // 获取用户信息
 export const getUserInfo = () => {
-  return request({
-    url: '/ucenter/info',
-    method: 'get'
-  })
+  return request.get('/ucenter/info')
 }
 
 // 登出

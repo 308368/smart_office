@@ -8,6 +8,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Component;
@@ -73,6 +74,11 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
         if (!StringUtils.hasText(token)) {
             return buildReturnMono("没有认证", exchange);
         }
+//        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//        log.info("principal:{}",principal);
+//        if (StringUtils.isEmpty(token)) {
+//            return buildReturnMono("没有认证",exchange);
+//        }
 
         //使用新的JwtDecoder验证令牌
         try {

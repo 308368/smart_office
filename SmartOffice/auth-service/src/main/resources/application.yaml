@@ -1,19 +1,6 @@
 server:
   port: 8081
-#
-#spring:
-#  datasource:
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#    url: jdbc:mysql://localhost:3306/so-system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-#    username: root
-#    password: root
-#
-#mybatis-plus:
-#  mapper-locations: classpath*:mapper/**/*.xml
-#  type-aliases-package: com.cqf.user.model.po
-#  configuration:
-#    map-underscore-to-camel-case: true
-#    default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
+
 so:
   db:
     database: so-system

@@ -18,3 +18,6 @@ spring:
           - data-id: shared-jdbc.yaml
             group: SmartOffice-common
             refresh: true
+          - data-id: share-redis.yaml
+            group: SmartOffice-common
+            refresh: true

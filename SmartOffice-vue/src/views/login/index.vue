@@ -6,15 +6,21 @@
         <p class="subtitle">SmartOffice - 让办公更智能</p>
         <div class="features">
           <div class="feature-item">
-            <el-icon><ChatDotRound /></el-icon>
+            <el-icon>
+              <ChatDotRound />
+            </el-icon>
             <span>AI智能问答</span>
           </div>
           <div class="feature-item">
-            <el-icon><Collection /></el-icon>
+            <el-icon>
+              <Collection />
+            </el-icon>
             <span>企业知识库</span>
           </div>
           <div class="feature-item">
-            <el-icon><Tickets /></el-icon>
+            <el-icon>
+              <Tickets />
+            </el-icon>
             <span>工单管理</span>
           </div>
         </div>
@@ -25,35 +31,17 @@
         <h2 class="login-title">欢迎登录</h2>
         <el-form ref="formRef" :model="loginForm" :rules="rules" class="login-form">
           <el-form-item prop="username">
-            <el-input
-              v-model="loginForm.username"
-              placeholder="请输入用户名"
-              prefix-icon="User"
-              size="large"
-            />
+            <el-input v-model="loginForm.username" placeholder="请输入用户名" prefix-icon="User" size="large" />
           </el-form-item>
           <el-form-item prop="password">
-            <el-input
-              v-model="loginForm.password"
-              type="password"
-              placeholder="请输入密码"
-              prefix-icon="Lock"
-              size="large"
-              show-password
-              @keyup.enter="handleLogin"
-            />
+            <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" prefix-icon="Lock" size="large"
+              show-password @keyup.enter="handleLogin" />
           </el-form-item>
           <el-form-item>
             <el-checkbox v-model="rememberMe">记住密码</el-checkbox>
           </el-form-item>
           <el-form-item>
-            <el-button
-              type="primary"
-              size="large"
-              :loading="loading"
-              class="login-button"
-              @click="handleLogin"
-            >
+            <el-button type="primary" size="large" :loading="loading" class="login-button" @click="handleLogin">
               登 录
             </el-button>
           </el-form-item>
@@ -69,6 +57,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, FormInstance } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import { login } from '../../api/user'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -94,7 +83,23 @@ const handleLogin = async () => {
     if (valid) {
       loading.value = true
       try {
-        await userStore.loginAction(loginForm.username, loginForm.password)
+        const loginData = {
+          username: loginForm.username,
+          password: loginForm.password,
+          // loginType: 'password'
+        };
+        const loginRequest = {
+          username: JSON.stringify(loginData),
+          password: loginForm.password
+        }
+        // await userStore.loginAction(loginForm.username, loginForm.password)
+
+        await login(loginRequest).then((res: any) => {
+          if (res.data) {
+            localStorage.setItem('token', res.data.token)
+            localStorage.setItem('userId', String(res.data.userId))
+          }
+        })
         ElMessage.success('登录成功')
         router.push('/')
       } catch (error) {

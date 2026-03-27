@@ -8,6 +8,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,9 +30,24 @@ public class JwtUtil {
      * @return JWT令牌字符串
      */
     public static String createToken(Long userId, String username) {
+        return createToken(userId, username, null);
+    }
+
+    /**
+     * 生成JWT令牌（带权限）
+     *
+     * @param userId     用户ID
+     * @param username   用户名
+     * @param permissions 权限列表
+     * @return JWT令牌字符串
+     */
+    public static String createToken(Long userId, String username, List<String> permissions) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("username", username);
+        if (permissions != null && !permissions.isEmpty()) {
+            claims.put("permissions", permissions);
+        }
 
         return Jwts.builder()
                 .claims(claims)
@@ -70,6 +86,15 @@ public class JwtUtil {
     public static String getUsername(String token) {
         Claims claims = parseToken(token);
         return claims.getSubject();
+    }
+
+    /**
+     * 获取权限列表
+     */
+    @SuppressWarnings("unchecked")
+    public static List<String> getPermissions(String token) {
+        Claims claims = parseToken(token);
+        return claims.get("permissions", List.class);
     }
 
     /**
