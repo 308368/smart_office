@@ -17,4 +17,17 @@ import java.util.List;
 public interface SysMenuMapper extends BaseMapper<SysMenu> {
     @Select("SELECT DISTINCT m.permission FROM sys_menu m INNER JOIN sys_role_menu rm ON m.id = rm.menu_id INNER JOIN sys_user_role ur ON rm.role_id = ur.role_id WHERE ur.user_id = #{userId}")
     List<String> getPermissionByUserId(Long userId);
+
+    @Select("SELECT  m.id,\n" +
+            "    m.parent_id,\n" +
+            "    m.name,\n" +
+            "    m.path,\n" +
+            "    m.component,\n" +
+            "    m.menu_type,\n" +
+            "    m.icon,\n" +
+            "    m.sort,\n" +
+            "    m.visible,\n" +
+            "    m.permission,\n" +
+            "    m.create_time FROM sys_menu m LEFT JOIN sys_role_menu rm on m.id=rm.menu_id WHERE role_id IN (2) GROUP BY m.id")
+    List<SysMenu> getMenuByRoleIds(List<Long> roleIds);
 }

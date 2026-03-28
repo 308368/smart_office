@@ -15,5 +15,5 @@ public class UserInfo {
     private Long deptId;
     private String deptName;
     private String[] roles;
-    private String permissions;
+    private String[] permissions;
 }

@@ -2,6 +2,9 @@ package com.cqf.auth.mapper;
 
 import com.cqf.auth.model.po.SysRole;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 /**
  * <p>
@@ -12,5 +15,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @since 2026-03-26
  */
 public interface SysRoleMapper extends BaseMapper<SysRole> {
+    @Select("SELECT r.* FROM sys_role r left join sys_user_role ur on r.id=ur.role_id WHERE user_id = #{userId}")
+    List<SysRole> getRolesByUserId(Long userId);
 
 }

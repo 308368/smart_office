@@ -5,6 +5,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.cqf.auth.mapper.*;
 import com.cqf.auth.model.dto.LoginDTO;
+import com.cqf.auth.model.po.SysRole;
 import com.cqf.auth.model.po.SysUser;
 import com.cqf.auth.service.AuthService;
 import com.cqf.common.result.LoginResult;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 自定义用户详情服务
@@ -40,8 +42,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final ApplicationContext applicationContext;
     private final SysMenuMapper menuMapper;
     private final SysRoleMapper roleMapper;
-    private final SysRoleMenuMapper roleMenuMapper;
-    private final SysUserRoleMapper userRoleMapper;
     private final RedisTemplate redisTemplate;
     @Override
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
@@ -76,16 +76,18 @@ public class CustomUserDetailsService implements UserDetailsService {
         String[] authorities = menus.stream()
                 .filter(permission -> permission != null && !permission.trim().isEmpty())
                 .toArray(String[]::new);
+        String[] roles = roleMapper.getRolesByUserId(sysUser.getId()).stream().map(SysRole::getCode).toArray(String[]::new);
         // 将权限列表传入 token
         LoginResult loginResult = LoginResult.builder()
                 .userId(sysUser.getId())
                 .username(sysUser.getUsername())
                 .nickname(sysUser.getNickname())
                 .token(JwtUtil.createToken(sysUser.getId(), sysUser.getUsername(), menus))
-                .roles(authorities)
+                .roles(roles)
                 .build();
         //将用户信息存入reids
         String userKey = "smart:user:" + sysUser.getId();
+//        loginResult.setToken(null);
         redisTemplate.opsForValue().set(userKey, loginResult, 24, TimeUnit.HOURS);
         // 构建 UserDetails
         return User.builder()

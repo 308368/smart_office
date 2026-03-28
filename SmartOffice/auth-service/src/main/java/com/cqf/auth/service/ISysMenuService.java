@@ -2,6 +2,9 @@ package com.cqf.auth.service;
 
 import com.cqf.auth.model.po.SysMenu;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.cqf.auth.model.vo.SysMenuVo;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface ISysMenuService extends IService<SysMenu> {
 
+    List<SysMenuVo> getMenuTree();
+
+    List<SysMenuVo> getUserRoutes();
 }
