@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
 import { getRoleList, addRole, updateRole, deleteRole, getRoleMenus, assignMenus, getMenuList } from '@/api/user'
 
@@ -139,6 +139,10 @@ const selectRole = async (row: any) => {
   try {
     const res = await getRoleMenus(row.id)
     checkedMenus.value = res.data || []
+    // 手动设置树的选中状态
+    nextTick(() => {
+      treeRef.value?.setCheckedKeys(checkedMenus.value)
+    })
   } catch (error) {
     console.error(error)
   }
@@ -147,12 +151,37 @@ const selectRole = async (row: any) => {
 // 保存权限
 const handleSavePermissions = async () => {
   if (!selectedRole.value) return
+
   const checkedKeys = treeRef.value?.getCheckedKeys() || []
-  const halfCheckedKeys = treeRef.value?.getHalfCheckedKeys() || []
-  const allKeys = [...checkedKeys, ...halfCheckedKeys]
+
+  // 处理：二级节点全部选中时传一级+二级，部分选中时只传二级
+  const menuIds: number[] = []
+
+  // 遍历菜单树
+  for (const menu of menuTree.value) {
+    if (menu.children && menu.children.length > 0) {
+      // 一级菜单，检查其子节点
+      const childIds = menu.children.map((c: any) => c.id)
+      const checkedChildIds = checkedKeys.filter((id: number) => childIds.includes(id))
+
+      if (checkedChildIds.length === menu.children.length) {
+        // 子节点全部选中，添加一级菜单ID和所有二级菜单ID
+        menuIds.push(menu.id)
+        menuIds.push(...childIds)
+      } else {
+        // 部分选中，只添加选中的二级节点
+        menuIds.push(...checkedChildIds)
+      }
+    } else {
+      // 没有子节点的一级菜单
+      if (checkedKeys.includes(menu.id)) {
+        menuIds.push(menu.id)
+      }
+    }
+  }
 
   try {
-    await assignMenus(selectedRole.value.id, allKeys)
+    await assignMenus(selectedRole.value.id, menuIds)
     ElMessage.success('保存成功')
   } catch (error) {
     console.error(error)

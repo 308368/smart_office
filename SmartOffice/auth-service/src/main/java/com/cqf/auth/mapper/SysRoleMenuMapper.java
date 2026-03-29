@@ -3,6 +3,8 @@ package com.cqf.auth.mapper;
 import com.cqf.auth.model.po.SysRoleMenu;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
+import java.util.List;
+
 /**
  * <p>
  * 角色菜单关联表 Mapper 接口
@@ -13,4 +15,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 public interface SysRoleMenuMapper extends BaseMapper<SysRoleMenu> {
 
+    void insertBatch(List<SysRoleMenu> sysRoleMenus);
 }

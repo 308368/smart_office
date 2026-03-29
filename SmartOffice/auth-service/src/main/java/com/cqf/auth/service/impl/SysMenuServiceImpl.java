@@ -17,6 +17,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cqf.common.result.LoginResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -69,7 +70,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
             sysMenuVo.setMeta(menuMeta);
             List<SysMenuVo> children = childrenMap.get(parentMenu.getId());
             sysMenuVo.setChildren(children);
-            sysMenuVo.setRedirect(children.get(0).getPath());
+            if (children != null && !children.isEmpty())sysMenuVo.setRedirect(children.get(0).getPath());
             sysMenuVos.add(sysMenuVo);
         });
 
@@ -77,23 +78,29 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
     }
 
     @Override
-    public List<SysMenuVo> getUserRoutes() {
+    public List<SysMenuVo> getSysMenuVosByRoleIds(List<Long> roleIds) {
+        // 获取菜单树
         List<SysMenuVo> menuTree = getMenuTree();
-        SysUser sysUser = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, SecurityContextHolder.getContext().getAuthentication().getName()));
-        Object user = redisTemplate.opsForValue().get("smart:user:" + sysUser.getId());
-        LoginResult loginResult=null;
-        try {
-            JSON userJson = JSONUtil.parse(user);
-            loginResult = JSONUtil.toBean((JSONObject) userJson, LoginResult.class);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("类型转换失败");
-        }
-        String[] roles = loginResult.getRoles();
+        if (roleIds.size()==0||roleIds==null) {
+            // 获取用户角色
+            SysUser sysUser = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, SecurityContextHolder.getContext().getAuthentication().getName()));
+            // 获取用户信息
+            Object user = redisTemplate.opsForValue().get("smart:user:" + sysUser.getId());
+            LoginResult loginResult=null;
+            try {
+                JSON userJson = JSONUtil.parse(user);
+                loginResult = JSONUtil.toBean((JSONObject) userJson, LoginResult.class);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException("类型转换失败");
+            }
+            String[] roles = loginResult.getRoles();
+
         List<SysRole> sysRoles = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRole>()
                 .in(SysRole::getCode, roles)
                 .select(SysRole::getId));
-        List<Long> roleIds = sysRoles.stream().map(SysRole::getId).toList();
+        roleIds = sysRoles.stream().map(SysRole::getId).toList();
+        }
         List<SysMenu> menuByRoleIds = menuMapper.getMenuByRoleIds(roleIds);
         Set<Long> ids = menuByRoleIds.stream().map(SysMenu::getId).collect(Collectors.toSet());
         menuTree.removeIf(menu -> !ids.contains(menu.getId()));

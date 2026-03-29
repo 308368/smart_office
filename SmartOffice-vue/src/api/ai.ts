@@ -6,11 +6,7 @@ export const chat = (data: {
   question: string
   sessionId?: string
 }) => {
-  return request({
-    url: '/ai/chat',
-    method: 'post',
-    data
-  })
+  return request.post('/ai/chat', data)
 }
 
 // AI问答（流式）
@@ -19,35 +15,20 @@ export const chatStream = (params: {
   question: string
   sessionId?: string
 }) => {
-  return request({
-    url: '/ai/chat/stream',
-    method: 'get',
-    params,
-    responseType: 'text'
-  })
+  return request.get('/ai/chat/stream', { params, responseType: 'text' })
 }
 
 // 对话历史列表
 export const getChatHistory = (params?: { sessionId?: string; current?: number; size?: number }) => {
-  return request({
-    url: '/ai/history',
-    method: 'get',
-    params
-  })
+  return request.get('/ai/history', { params })
 }
 
 // 删除对话历史
 export const deleteChatHistory = (id: number) => {
-  return request({
-    url: `/ai/history/${id}`,
-    method: 'delete'
-  })
+  return request.delete(`/ai/history/${id}`)
 }
 
 // 获取知识库列表（供AI对话选择）
 export const getAIKnowledgeList = () => {
-  return request({
-    url: '/ai/kb/list',
-    method: 'get'
-  })
+  return request.get('/ai/kb/list')
 }

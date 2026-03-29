@@ -35,7 +35,7 @@
         </el-table-column>
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link @click="handleCreate(row)">新增子菜单</el-button>
+            <el-button v-if="row.parentId === 0" type="primary" link @click="handleCreate(row)">新增子菜单</el-button>
             <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
             <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
           </template>
@@ -89,7 +89,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
-import { getMenuList } from '@/api/user'
+import { getMenuList, addMenu, updateMenu, deleteMenu } from '@/api/user'
 
 const menuList = ref<any[]>([])
 const dialogVisible = ref(false)
@@ -155,7 +155,7 @@ const handleEdit = (row: any) => {
 const handleDelete = async (row: any) => {
   try {
     await ElMessageBox.confirm(`确定要删除菜单"${row.name}"吗？`, '提示', { type: 'warning' })
-    // await deleteMenu(row.id)
+    await deleteMenu(row.id)
     ElMessage.success('删除成功')
     fetchList()
   } catch (error) {
@@ -168,8 +168,13 @@ const handleSubmit = async () => {
   await formRef.value.validate(async (valid) => {
     if (valid) {
       try {
-        // await saveMenu(form)
-        ElMessage.success('保存成功')
+        if (isEdit.value) {
+          await updateMenu(form)
+          ElMessage.success('更新成功')
+        } else {
+          await addMenu(form)
+          ElMessage.success('新增成功')
+        }
         dialogVisible.value = false
         fetchList()
       } catch (error) {

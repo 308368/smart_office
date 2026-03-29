@@ -21,27 +21,27 @@
           <span>首页</span>
         </el-menu-item>
 
-        <el-menu-item index="/knowledge">
+        <el-menu-item index="/knowledge" v-if="hasPermission('knowledge')">
           <el-icon><Collection /></el-icon>
           <span>知识库</span>
         </el-menu-item>
 
-        <el-menu-item index="/ai-chat">
+        <el-menu-item index="/ai-chat" v-if="hasPermission('ai')">
           <el-icon><ChatDotRound /></el-icon>
           <span>AI助手</span>
         </el-menu-item>
 
-        <el-menu-item index="/ticket">
+        <el-menu-item index="/ticket" v-if="hasPermission('ticket')">
           <el-icon><Tickets /></el-icon>
           <span>工单管理</span>
         </el-menu-item>
 
-        <el-menu-item index="/leave">
+        <el-menu-item index="/leave" v-if="hasPermission('leave')">
           <el-icon><Calendar /></el-icon>
           <span>请假申请</span>
         </el-menu-item>
 
-        <el-menu-item index="/notice">
+        <el-menu-item index="/notice" v-if="hasPermission('notice')">
           <el-icon><Bell /></el-icon>
           <span>通知公告</span>
         </el-menu-item>
@@ -119,8 +119,14 @@ const unreadCount = ref(0)
 const activeMenu = computed(() => route.path)
 
 const isAdmin = computed(() => {
-  return userStore.roles.includes('SUPER_ADMIN')
+  // 检查是否有系统管理相关权限
+  return userStore.permissions.some(p => p.startsWith('system:'))
 })
+
+// 检查是否有指定前缀的权限（如 knowledge:xxx 任意一个即可显示知识库菜单）
+const hasPermission = (prefix: string) => {
+  return userStore.permissions.some(p => p.startsWith(prefix + ':'))
+}
 
 // 获取未读消息数
 const fetchUnreadCount = async () => {

@@ -18,5 +18,5 @@ public interface ISysMenuService extends IService<SysMenu> {
 
     List<SysMenuVo> getMenuTree();
 
-    List<SysMenuVo> getUserRoutes();
+    List<SysMenuVo> getSysMenuVosByRoleIds(List<Long> roleIds);
 }

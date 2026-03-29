@@ -10,6 +10,14 @@ public class Result <T> implements Serializable {
     private String msg;
     private T data;
     private Long timestamp;
+    public static <T> Result<T> success(){
+        Result<T> result = new Result<>();
+        result.setCode(ResultCode.SUCCESS.getCode());
+        result.setMsg("成功");
+        result.setData(null);
+        result.setTimestamp(System.currentTimeMillis());
+        return result;
+    }
     public static <T> Result<T> success(T data){
         Result<T> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getCode());

@@ -3,6 +3,8 @@ package com.cqf.auth.mapper;
 import com.cqf.auth.model.po.SysUserRole;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
+import java.util.ArrayList;
+
 /**
  * <p>
  * 用户角色关联表 Mapper 接口
@@ -13,4 +15,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 public interface SysUserRoleMapper extends BaseMapper<SysUserRole> {
 
+    void insertBatch(ArrayList<SysUserRole> sysUserRoles);
 }

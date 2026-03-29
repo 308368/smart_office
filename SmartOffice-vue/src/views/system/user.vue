@@ -21,6 +21,13 @@
       <el-table-column prop="username" label="用户名" width="120" />
       <el-table-column prop="nickname" label="昵称" width="120" />
       <el-table-column prop="deptName" label="部门" width="120" />
+      <el-table-column prop="roleIds" label="角色" min-width="150">
+        <template #default="{ row }">
+          <el-tag v-for="roleId in row.roleIds" :key="roleId" type="info" size="small" style="margin-right: 4px">
+            {{ getRoleName(roleId) }}
+          </el-tag>
+        </template>
+      </el-table-column>
       <el-table-column prop="phone" label="手机号" width="130" />
       <el-table-column prop="email" label="邮箱" min-width="150" />
       <el-table-column prop="status" label="状态" width="80">
@@ -34,6 +41,7 @@
       <el-table-column label="操作" width="150" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
+          <el-button type="warning" link @click="handleResetPwd(row)">重置密码</el-button>
           <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
         </template>
       </el-table-column>
@@ -65,7 +73,14 @@
           <el-input v-model="form.email" />
         </el-form-item>
         <el-form-item label="部门" prop="deptId">
-          <el-input v-model.number="form.deptId" type="number" />
+          <el-select v-model="form.deptId" placeholder="请选择部门" clearable>
+            <el-option v-for="dept in deptList" :key="dept.id" :label="dept.name" :value="dept.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="角色" prop="roleIds">
+          <el-select v-model="form.roleIds" placeholder="请选择角色" multiple clearable>
+            <el-option v-for="role in roleList" :key="role.id" :label="role.name" :value="role.id" />
+          </el-select>
         </el-form-item>
         <el-form-item label="状态" v-if="isEdit">
           <el-switch v-model="form.status" :active-value="1" :inactive-value="0" />
@@ -82,9 +97,11 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
-import { getUserList, addUser, updateUser, deleteUser } from '@/api/user'
+import { getUserList, getUserById, getDeptList, getRoleList, addUser, updateUser, deleteUser, resetPassword } from '@/api/user'
 
 const userList = ref<any[]>([])
+const deptList = ref<any[]>([])
+const roleList = ref<any[]>([])
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref<FormInstance>()
@@ -99,6 +116,7 @@ const form = reactive({
   phone: '',
   email: '',
   deptId: undefined as number | undefined,
+  roleIds: [] as number[],
   status: 1
 })
 
@@ -118,6 +136,14 @@ const fetchList = async () => {
 
 onMounted(() => {
   fetchList()
+  // 加载部门列表
+  getDeptList().then((res: any) => {
+    deptList.value = res.data || []
+  })
+  // 加载角色列表
+  getRoleList().then((res: any) => {
+    roleList.value = res.data || []
+  })
 })
 
 const handleCreate = () => {
@@ -127,15 +153,21 @@ const handleCreate = () => {
   form.phone = ''
   form.email = ''
   form.deptId = undefined
+  form.roleIds = []
   form.status = 1
   isEdit.value = false
   dialogVisible.value = true
 }
 
-const handleEdit = (row: any) => {
-  Object.assign(form, row)
-  isEdit.value = true
-  dialogVisible.value = true
+const handleEdit = async (row: any) => {
+  try {
+    const res = await getUserById(row.id)
+    Object.assign(form, res.data)
+    isEdit.value = true
+    dialogVisible.value = true
+  } catch (error) {
+    console.error(error)
+  }
 }
 
 const handleDelete = async (row: any) => {
@@ -144,6 +176,22 @@ const handleDelete = async (row: any) => {
     await deleteUser(row.id)
     ElMessage.success('删除成功')
     fetchList()
+  } catch (error) {
+    // 用户取消
+  }
+}
+
+// 根据角色ID获取角色名称
+const getRoleName = (roleId: number) => {
+  const role = roleList.value.find(r => r.id === roleId)
+  return role ? role.name : ''
+}
+
+const handleResetPwd = async (row: any) => {
+  try {
+    await ElMessageBox.confirm(`确定要重置用户"${row.username}"的密码吗？`, '提示', { type: 'warning' })
+    await resetPassword(row.id)
+    ElMessage.success('密码已重置为 123456')
   } catch (error) {
     // 用户取消
   }
