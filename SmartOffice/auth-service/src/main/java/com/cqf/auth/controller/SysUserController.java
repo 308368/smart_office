@@ -118,5 +118,16 @@ public class SysUserController {
                 .update();
         return Result.success();
     }
+
+    /**
+     * 根据用户名获取用户id
+     * @param username
+     * @return
+     */
+    @GetMapping("/userInfo/{username}")
+    public Long getUserId(@PathVariable String username) {
+        SysUser one = sysUserService.lambdaQuery().eq(SysUser::getUsername, username).one();
+        return one.getId();
+    }
     
 }

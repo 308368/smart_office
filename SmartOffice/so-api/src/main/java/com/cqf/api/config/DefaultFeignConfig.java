@@ -1,12 +1,13 @@
-package com.hmall.api.config;
+package com.cqf.api.config;
 
-import cn.hutool.core.util.StrUtil;
-import com.hmall.api.client.fallback.ItemClientFallbackFactory;
-import com.hmall.common.utils.UserContext;
+
 import feign.Logger;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 public class DefaultFeignConfig {
     @Bean
@@ -18,15 +19,21 @@ public class DefaultFeignConfig {
         return new RequestInterceptor() {
             @Override
             public void apply(RequestTemplate requestTemplate) {
-                String userId = String.valueOf(UserContext.getUser());
-                if (StrUtil.isNotBlank(userId)){
-                    requestTemplate.header("user-info", userId);
+                //获取当前的请求对象
+                ServletRequestAttributes attributes =
+                        (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+                System.out.println("=== Feign Interceptor Debug ===");
+                System.out.println("attributes: " + attributes);
+                if (attributes != null){
+                    HttpServletRequest request = attributes.getRequest();
+                    String header = request.getHeader("Authorization");
+                    if (header != null){
+                        requestTemplate.header("Authorization", header);
+                    }
                 }
+
             }
         };
     }
-    @Bean
-    public ItemClientFallbackFactory itemClientFallbackFactory(){
-        return new ItemClientFallbackFactory();
-    }
+
 }

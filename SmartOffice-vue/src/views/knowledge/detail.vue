@@ -46,7 +46,7 @@
         <div class="doc-detail" v-if="selectedDoc">
           <div class="detail-item">
             <span class="label">文件名：</span>
-            <span class="value">{{ selectedDoc.fileName }}</span>
+            <span class="value">{{ selectedDoc.title }}</span>
           </div>
           <div class="detail-item">
             <span class="label">文件大小：</span>

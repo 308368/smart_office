@@ -1,0 +1,10 @@
+server:
+  port: 8082
+
+so:
+  db:
+    database: so-knowledge
+
+logging:
+  level:
+    com.cqf.knowledge.mapper: debug

@@ -1,4 +1,14 @@
 package com.cqf.api.client;
 
-public interface AurhClient {
+import com.cqf.api.client.fallback.AuthClientFallbackFactory;
+import com.cqf.api.config.DefaultFeignConfig;
+import com.cqf.common.result.Result;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
+@FeignClient(value = "auth-service",fallbackFactory = AuthClientFallbackFactory.class, configuration = DefaultFeignConfig.class)
+public interface AuthClient {
+    @GetMapping("/system/user/userInfo/{username}")
+    Long getUserId(@PathVariable String username);
 }

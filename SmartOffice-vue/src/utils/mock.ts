@@ -8,10 +8,10 @@ export const mockData: Record<string, any> = {
     msg: 'success',
     data: {
       records: [
-        { id: 1, name: '员工手册', description: '公司员工手册及制度文档', docCount: 23, chunkCount: 456, isPublic: true, status: 1, createTime: '2024-03-20 10:00:00' },
-        { id: 2, name: '考勤制度', description: '员工考勤管理制度', docCount: 15, chunkCount: 234, isPublic: true, status: 1, createTime: '2024-03-18 10:00:00' },
-        { id: 3, name: '财务制度', description: '财务报销管理制度', docCount: 18, chunkCount: 345, isPublic: false, status: 1, createTime: '2024-03-15 10:00:00' },
-        { id: 4, name: '技术文档', description: '技术开发文档', docCount: 42, chunkCount: 890, isPublic: false, status: 1, createTime: '2024-03-10 10:00:00' }
+        { id: 1, name: '员工手册', description: '公司员工手册及制度文档', docCount: 23, chunkCount: 456, status: 1, createTime: '2024-03-20 10:00:00' },
+        { id: 2, name: '考勤制度', description: '员工考勤管理制度', docCount: 15, chunkCount: 234, status: 1, createTime: '2024-03-18 10:00:00' },
+        { id: 3, name: '财务制度', description: '财务报销管理制度', docCount: 18, chunkCount: 345, status: 0, createTime: '2024-03-15 10:00:00' },
+        { id: 4, name: '技术文档', description: '技术开发文档', docCount: 42, chunkCount: 890, status: 0, createTime: '2024-03-10 10:00:00' }
       ],
       total: 4,
       current: 1,
@@ -24,14 +24,14 @@ export const mockData: Record<string, any> = {
   'GET|/api/knowledge/kb/1': {
     code: 200,
     msg: 'success',
-    data: { id: 1, name: '员工手册', description: '公司员工手册及制度文档', docCount: 23, chunkCount: 456, isPublic: true, status: 1, createTime: '2024-03-20 10:00:00' }
+    data: { id: 1, name: '员工手册', description: '公司员工手册及制度文档', docCount: 23, chunkCount: 456, status: 1, createTime: '2024-03-20 10:00:00' }
   },
 
   // 创建知识库
   'POST|/api/knowledge/kb/create': {
     code: 200,
     msg: '创建成功',
-    data: { id: 5, name: '', description: '', docCount: 0, isPublic: true, status: 1, createTime: '2024-03-24 21:00:00' }
+    data: { id: 5, name: '', description: '', docCount: 0, status: 1, createTime: '2024-03-24 21:00:00' }
   },
 
   // 修改知识库

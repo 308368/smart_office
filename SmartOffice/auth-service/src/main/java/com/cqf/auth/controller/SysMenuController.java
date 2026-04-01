@@ -11,6 +11,7 @@ import com.cqf.auth.service.ISysRoleService;
 import com.cqf.common.result.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,6 +43,7 @@ public class SysMenuController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('system:menu:add')")
+    @Transactional
     public Result<Void> add(@RequestBody SysMenu menu) {
         sysMenuService.save(menu);
         SysRoleMenu sysRoleMenu = new SysRoleMenu();

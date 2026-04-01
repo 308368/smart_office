@@ -1,4 +1,4 @@
-package com.cqf.auth.config;
+package com.cqf.knowledge.config;
 
 import com.cqf.common.utils.JwtUtil;
 import jakarta.servlet.FilterChain;

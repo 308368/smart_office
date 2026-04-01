@@ -1,4 +1,9 @@
 package com.cqf.knowledge.model.dto;
 
-public class KnowledgeQueryParam {
+import com.cqf.common.domain.QueryParam;
+import lombok.Data;
+
+@Data
+public class KnowledgeQueryParam extends QueryParam {
+    private String name;
 }

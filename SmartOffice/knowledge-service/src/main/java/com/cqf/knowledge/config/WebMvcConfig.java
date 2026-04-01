@@ -1,4 +1,4 @@
-package com.cqf.auth.config;
+package com.cqf.knowledge.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

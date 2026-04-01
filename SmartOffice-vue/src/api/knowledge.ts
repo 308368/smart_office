@@ -1,8 +1,13 @@
 import request from '@/utils/request'
 
-// 知识库列表
+// 知识库列表（管理员用）
 export const getKnowledgeList = (params: any) => {
   return request.get('/knowledge/kb/list', { params })
+}
+
+// 用户可访问的知识库列表（普通用户用）
+export const getUserKnowledgeList = (params: any) => {
+  return request.get('/knowledge/kb/user/list', { params })
 }
 
 // 创建知识库

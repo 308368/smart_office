@@ -26,8 +26,8 @@
           <div class="kb-meta">
             <span><el-icon><Document /></el-icon> {{ item.docCount }} 文档</span>
             <span>
-              <el-tag :type="item.isPublic ? 'success' : 'warning'" size="small">
-                {{ item.isPublic ? '公开' : '私有' }}
+              <el-tag :type="item.status === 1 ? 'success' : 'warning'" size="small">
+                {{ item.status === 1 ? '公开' : '私有' }}
               </el-tag>
             </span>
           </div>
@@ -59,7 +59,7 @@
           <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入描述" />
         </el-form-item>
         <el-form-item label="公开">
-          <el-switch v-model="form.isPublic" active-text="公开" inactive-text="私有" />
+          <el-switch v-model="form.status" :active-value="1" :inactive-value="0" active-text="公开" inactive-text="私有" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -74,9 +74,11 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
-import { getKnowledgeList, createKnowledge, updateKnowledge, deleteKnowledge } from '@/api/knowledge'
+import { getKnowledgeList, getUserKnowledgeList, createKnowledge, updateKnowledge, deleteKnowledge } from '@/api/knowledge'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 
 const kbList = ref<any[]>([])
 const dialogVisible = ref(false)
@@ -87,7 +89,7 @@ const form = reactive({
   id: undefined as number | undefined,
   name: '',
   description: '',
-  isPublic: true
+  status: 1
 })
 
 const rules = {
@@ -97,8 +99,14 @@ const rules = {
 // 获取知识库列表
 const fetchList = async () => {
   try {
-    const res = await getKnowledgeList({ current: 1, size: 100 })
-    kbList.value = res.data.records || []
+    let res
+    // 有 knowledge:list 权限则获取全部，否则获取用户可访问的
+    if (userStore.permissions.includes('knowledge:list')) {
+      res = await getKnowledgeList({ current: 1, size: 100 })
+    } else {
+      res = await getUserKnowledgeList({ current: 1, size: 100 })
+    }
+    kbList.value = res.data.records || res.data || []
   } catch (error) {
     console.error(error)
   }
@@ -118,7 +126,7 @@ const handleCreate = () => {
   form.id = undefined
   form.name = ''
   form.description = ''
-  form.isPublic = true
+  form.status = 1
   isEdit.value = false
   dialogVisible.value = true
 }
@@ -128,7 +136,7 @@ const handleEdit = (item: any) => {
   form.id = item.id
   form.name = item.name
   form.description = item.description
-  form.isPublic = item.isPublic
+  form.status = item.status
   isEdit.value = true
   dialogVisible.value = true
 }
