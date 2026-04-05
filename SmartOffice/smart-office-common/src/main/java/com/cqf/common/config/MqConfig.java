@@ -1,6 +1,6 @@
-package com.hmall.common.config;
+package com.cqf.common.config;
 
-import com.hmall.common.utils.RabbitMqHelper;
+import com.cqf.common.utils.RabbitMqHelper;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;

@@ -1,9 +1,7 @@
-package com.xuecheng.media.model.dto;
+package com.cqf.knowledge.model.dto;
 
-import com.xuecheng.media.model.po.MediaFiles;
 import lombok.Builder;
 import lombok.Data;
-import lombok.ToString;
 
 /**
  * @description 上传普通文件请求参数

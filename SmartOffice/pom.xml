@@ -19,6 +19,7 @@
         <module>auth-service</module>
         <module>smart-office-gateway</module>
         <module>knowledge-service</module>
+        <module>so-api</module>
     </modules>
     <properties>
         <java.version>17</java.version>

@@ -12,11 +12,9 @@ import com.cqf.knowledge.model.vo.DocumentVo;
 import com.cqf.knowledge.model.vo.KnowledgeVO;
 import com.cqf.knowledge.service.IKbDocumentService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -33,6 +31,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class KbDocumentController {
     private final IKbDocumentService kbDocumentService;
+//    private final RabbitMqHelper rabbitMqHelper;
     @GetMapping("/{kbId}/doc/list")
     public Result<PageResult<DocumentVo>> listDoc(@PathVariable("kbId") Long kbId, DocQueryParam docQueryParam) {
         Page<KbDocument> kbDocumentPage = kbDocumentService.lambdaQuery()
@@ -49,5 +48,12 @@ public class KbDocumentController {
         pageResult.setRecords(documentVos);
         return Result.success(pageResult);
     }
+    @PostMapping(value = "/{kbId}/doc/upload",consumes = "multipart/form-data")
+    @PreAuthorize("hasAuthority('knowledge:upload')")
+    public Result<DocumentVo> upload(@PathVariable("kbId") Long kbId, @RequestParam("file") MultipartFile file) {
+        DocumentVo documentVo=kbDocumentService.upload(kbId,file);
+        return Result.success(documentVo);
+    }
+
 
 }

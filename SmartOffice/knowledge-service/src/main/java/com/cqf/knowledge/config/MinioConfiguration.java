@@ -1,4 +1,4 @@
-package com.xuecheng.media.config;
+package com.cqf.knowledge.config;
 
 import io.minio.MinioClient;
 import org.springframework.beans.factory.annotation.Value;

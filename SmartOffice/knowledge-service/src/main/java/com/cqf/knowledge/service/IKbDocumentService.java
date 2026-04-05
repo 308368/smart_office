@@ -2,6 +2,8 @@ package com.cqf.knowledge.service;
 
 import com.cqf.knowledge.model.po.KbDocument;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.cqf.knowledge.model.vo.DocumentVo;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * <p>
@@ -13,4 +15,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IKbDocumentService extends IService<KbDocument> {
 
+    DocumentVo upload(Long kbId, MultipartFile file);
+
+    DocumentVo addMediaFilesToDb(Long kbId,Long fileSize,String fileName,String extension,String objectName,String bucket);
 }

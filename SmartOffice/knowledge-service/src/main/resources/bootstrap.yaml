@@ -21,3 +21,6 @@ spring:
           - data-id: share-redis.yaml
             group: SmartOffice-common
             refresh: true
+          - data-id: share-seata.yaml
+            group: SmartOffice-common
+            refresh: true

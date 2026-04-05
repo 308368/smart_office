@@ -8,7 +8,7 @@
       </el-button>
       <h2>{{ kbInfo.name }}</h2>
       <div class="header-actions">
-        <el-button type="primary" @click="uploadVisible = true">
+        <el-button type="primary" @click="openUpload">
           <el-icon><Upload /></el-icon>
           上传文档
         </el-button>
@@ -90,7 +90,8 @@
         :on-success="handleUploadSuccess"
         :on-error="handleUploadError"
         :auto-upload="false"
-        multiple
+        :on-change="handleFileChange"
+        :file-list="fileList"
       >
         <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
         <div class="el-upload__text">
@@ -125,6 +126,7 @@ const docList = ref<any[]>([])
 const selectedDoc = ref<any>(null)
 const uploadVisible = ref(false)
 const uploadRef = ref()
+const fileList = ref<any[]>([])
 
 const uploadHeaders = {
   Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -159,6 +161,12 @@ const selectDoc = (doc: any) => {
   selectedDoc.value = doc
 }
 
+// 打开上传弹窗时清空之前的选择
+const openUpload = () => {
+  fileList.value = []
+  uploadVisible.value = true
+}
+
 const getStatusType = (status: number) => {
   const types = { 0: 'info', 1: 'warning', 2: 'success', 3: 'danger' }
   return types[status as keyof typeof types] || 'info'
@@ -187,7 +195,17 @@ const submitUpload = () => {
 const handleUploadSuccess = () => {
   ElMessage.success('上传成功，正在解析...')
   uploadVisible.value = false
+  fileList.value = []
   fetchDocList()
+}
+
+// 文件选择时，只保留最后一个文件
+const handleFileChange = (_file: any, files: any[]) => {
+  if (files.length > 1) {
+    fileList.value = [files[files.length - 1]]
+  } else {
+    fileList.value = files
+  }
 }
 
 const handleUploadError = () => {
