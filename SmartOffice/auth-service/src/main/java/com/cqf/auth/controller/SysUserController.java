@@ -33,6 +33,7 @@ import org.springframework.security.core.Authentication;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -65,10 +66,14 @@ public class SysUserController {
         userVoPageResult.setSize((int) sysUserPage.getSize());
         userVoPageResult.setTotal((int) sysUserPage.getTotal());
         userVoPageResult.setPages((int) sysUserPage.getPages());
+        //获取所有部门转换为map
+        List<SysDept> sysDepts = deptService.list();
+        Map<Long, String> deptMap = sysDepts.stream().collect(Collectors.toMap(SysDept::getId, SysDept::getName));
         List<UserVo> records = sysUserPage.getRecords().stream().map(sysUser -> {
             UserVo userVo = BeanUtil.copyProperties(sysUser, UserVo.class);
             List<SysUserRole> sysUserRoles = sysRoleMenuMapper.selectList(new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getUserId, sysUser.getId()));
             userVo.setRoleIds(sysUserRoles.stream().map(SysUserRole::getRoleId).toList());
+            userVo.setDeptName(deptMap.get(sysUser.getDeptId()));
             return userVo;
         }).collect(Collectors.toList());
         userVoPageResult.setRecords(records);

@@ -5,6 +5,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.cqf.knowledge.model.vo.DocumentVo;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.InputStream;
+
 /**
  * <p>
  * 知识库文档表 服务类
@@ -18,4 +21,8 @@ public interface IKbDocumentService extends IService<KbDocument> {
     DocumentVo upload(Long kbId, MultipartFile file);
 
     DocumentVo addMediaFilesToDb(Long kbId,Long fileSize,String fileName,String extension,String objectName,String bucket);
+
+    InputStream downloadFileFromMinIO(String videofiles, String mergeFilePath);
+
+    void removeDoc(Long kbId, Long docId);
 }

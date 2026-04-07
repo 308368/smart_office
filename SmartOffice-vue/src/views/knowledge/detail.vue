@@ -29,8 +29,8 @@
           >
             <el-icon><Document /></el-icon>
             <span class="doc-name">{{ doc.title }}</span>
-            <el-tag :type="getStatusType(doc.parseStatus)" size="small">
-              {{ getStatusText(doc.parseStatus) }}
+            <el-tag :type="getStatusType(doc.status)" size="small">
+              {{ getStatusText(doc.status) }}
             </el-tag>
           </div>
           <el-empty v-if="docList.length === 0" description="暂无文档" :image-size="60" />
@@ -54,8 +54,8 @@
           </div>
           <div class="detail-item">
             <span class="label">解析状态：</span>
-            <el-tag :type="getStatusType(selectedDoc.parseStatus)">
-              {{ getStatusText(selectedDoc.parseStatus) }}
+            <el-tag :type="getStatusType(selectedDoc.status)">
+              {{ getStatusText(selectedDoc.status) }}
             </el-tag>
           </div>
           <div class="detail-item">
@@ -67,9 +67,6 @@
             <span class="value">{{ selectedDoc.tokenCount || 0 }}</span>
           </div>
           <div class="detail-actions">
-            <el-button type="primary" size="small" @click="handleRebuild">
-              重建索引
-            </el-button>
             <el-button type="danger" size="small" @click="handleDelete">
               删除文档
             </el-button>
@@ -115,7 +112,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getKnowledgeDetail, getDocumentList, deleteDocument, rebuildIndex } from '@/api/knowledge'
+import { getKnowledgeDetail, getDocumentList, deleteDocument } from '@/api/knowledge'
 
 const route = useRoute()
 const router = useRouter()
@@ -210,15 +207,6 @@ const handleFileChange = (_file: any, files: any[]) => {
 
 const handleUploadError = () => {
   ElMessage.error('上传失败')
-}
-
-const handleRebuild = async () => {
-  try {
-    await rebuildIndex(kbId)
-    ElMessage.success('索引重建任务已启动')
-  } catch (error) {
-    console.error(error)
-  }
 }
 
 const handleDelete = async () => {

@@ -2,6 +2,8 @@ package com.cqf.knowledge.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.cqf.api.client.AuthClient;
+import com.cqf.common.constants.MQConstants;
+import com.cqf.common.utils.RabbitMqHelper;
 import com.cqf.common.utils.SnowflakeIdGenerator;
 import com.cqf.knowledge.mapper.KbKnowledgeBaseMapper;
 import com.cqf.knowledge.model.po.KbDocument;
@@ -10,12 +12,17 @@ import com.cqf.knowledge.model.po.KbKnowledgeBase;
 import com.cqf.knowledge.model.vo.DocumentVo;
 import com.cqf.knowledge.service.IKbDocumentService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
+import io.minio.RemoveObjectArgs;
 import io.minio.UploadObjectArgs;
+import io.minio.errors.*;
 import io.seata.spring.annotation.GlobalTransactional;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.IOUtils;
 import org.checkerframework.checker.units.qual.K;
+import org.checkerframework.checker.units.qual.min;
 import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
@@ -27,8 +34,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import java.io.File;
-import java.io.IOException;
+
+import java.io.*;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -50,6 +57,7 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
     private final KbKnowledgeBaseMapper kbKnowledgeBaseMapper;
     private final MinioClient minioClient;
     private final AuthClient authClient;
+    private final RabbitMqHelper rabbitMqHelper;
     @Resource
     @Lazy
     private IKbDocumentService currentProxy;
@@ -74,13 +82,15 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
         addMediaFilesToMinIO(absolutePath, objectName, contentType, bucketFiles);
         tempFile.delete();
         //保存到数据库
-        return currentProxy.addMediaFilesToDb(
-                kbId,file.getSize(),
+        DocumentVo documentVo = currentProxy.addMediaFilesToDb(
+                kbId, file.getSize(),
                 fileName.substring(0, fileName.lastIndexOf(".")),
-                fileName.substring(fileName.lastIndexOf(".")+1),
+                fileName.substring(fileName.lastIndexOf(".") + 1),
                 objectName,
                 bucketFiles
         );
+        rabbitMqHelper.sendMessage(MQConstants.EXCHANGE_NAME,MQConstants.DOCUMENT_KEY,documentVo.getId());
+        return documentVo;
     }
     @Override
     @Transactional
@@ -179,5 +189,72 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
         return dateFormat.format(new Date()) + "/";
 
+    }
+    @Override
+    public InputStream downloadFileFromMinIO(String videofiles, String mergeFilePath) {
+        FilterInputStream inputStream = null;
+        try {
+            inputStream = minioClient.getObject(GetObjectArgs.builder().bucket(videofiles).object(mergeFilePath).build());
+            /*minioFile = File.createTempFile("minioDownLoad", "temp");
+            outputStream = new FileOutputStream(minioFile);
+            IOUtils.copy(inputStream, outputStream);*/
+            return inputStream;
+        } catch (Exception e) {
+            e.printStackTrace();
+        } /*finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }*/
+        return null;
+    }
+
+    @Override
+    @Transactional
+    public void removeDoc(Long kbId, Long docId) {
+        KbDocument kbDocument = kbDocumentMapper.selectById(docId);
+        if (kbDocument == null) {
+            log.error("文档不存在,{}", docId);
+            throw new RuntimeException("文档不存在");
+        }
+        int i = kbDocumentMapper.deleteById(docId);
+        if (i < 0) {
+            log.error("删除文档失败,{}", docId);
+            throw new RuntimeException("删除文档失败");
+        }
+        log.info("删除文档成功,{}", docId);
+        KbKnowledgeBase kbKnowledgeBase = kbKnowledgeBaseMapper.selectById(kbId);
+        kbKnowledgeBase.setDocCount(kbKnowledgeBase.getDocCount() - 1);
+        int i1 = kbKnowledgeBaseMapper.updateById(kbKnowledgeBase);
+        if (i1 < 0) {
+            log.error("更新知识库文档数量失败,{}", kbKnowledgeBase.toString());
+            throw new RuntimeException("更新知识库文档数量失败");
+        }
+        log.info("更新知识库文档数量成功,{}", kbKnowledgeBase.toString());
+        //删除minio中的文档信息
+        removeFileMinIO(kbDocument);
+    }
+
+    private void removeFileMinIO(KbDocument kbDocument) {
+        String fileUrl = kbDocument.getFileUrl();
+        String objectName = fileUrl.substring(13);
+        try {
+            minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketFiles).object(objectName).build());
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("minio文件删除失败,{}", e.getMessage());
+            throw new RuntimeException("minio文件删除失败");
+        }
     }
 }

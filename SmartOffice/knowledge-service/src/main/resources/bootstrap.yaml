@@ -24,3 +24,9 @@ spring:
           - data-id: share-seata.yaml
             group: SmartOffice-common
             refresh: true
+          - data-id: share-minio.yaml
+            group: SmartOffice-common
+            refresh: true
+          - data-id: share-rabbitmq.yaml
+            group: SmartOffice-common
+            refresh: true

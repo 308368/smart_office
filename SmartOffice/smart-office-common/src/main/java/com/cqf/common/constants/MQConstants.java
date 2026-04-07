@@ -1,7 +1,7 @@
-package com.hmall.trade.constants;
+package com.cqf.common.constants;
 
 public interface MQConstants {
-    String DELAY_EXCHANGE_NAME="trade.delay.direct";
-    String DELAY_ORDER_QUEUE_NAME="trade.delay.order.queue";
-    String DELAY_ORDER_KEY="delay.order.query";
+    String EXCHANGE_NAME="knowledge.document.direct";
+    String DOCUMENT_QUEUE_NAME="knowledge.document.queue";
+    String DOCUMENT_KEY="document.analyze";
 }

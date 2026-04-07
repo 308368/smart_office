@@ -54,6 +54,12 @@ public class KbDocumentController {
         DocumentVo documentVo=kbDocumentService.upload(kbId,file);
         return Result.success(documentVo);
     }
+    @DeleteMapping("/{kbId}/doc/{docId}")
+    @PreAuthorize("hasAuthority('knowledge:doc:remove')")
+    public Result deleteDoc(@PathVariable("kbId") Long kbId, @PathVariable("docId") Long docId) {
+        kbDocumentService.removeDoc(kbId,docId);
+        return Result.success();
+    }
 
 
 }

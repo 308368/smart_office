@@ -3,7 +3,10 @@ package com.cqf.auth.controller;
 import cn.hutool.json.JSON;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.cqf.auth.model.po.SysDept;
 import com.cqf.auth.model.vo.UserInfo;
+import com.cqf.auth.service.ISysDeptService;
 import com.cqf.common.result.LoginResult;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,6 +35,7 @@ import java.util.Collection;
 public class AuthController {
     private final ISysUserService service;
     private final RedisTemplate redisTemplate;
+    private final ISysDeptService deptService;
 
     /**
      * 获取当前用户信息
@@ -57,6 +61,8 @@ public class AuthController {
             throw new RuntimeException("类型转换异常");
         }
         if (loginResult==null)return Result.error("用户登录过期");
+        Long deptId = user.getDeptId();
+        SysDept sysDept = deptService.lambdaQuery().eq(SysDept::getId, deptId).one();
         UserInfo userInfo = UserInfo.builder()
                 .userId(user.getId())
                 .username(user.getUsername())
@@ -64,7 +70,8 @@ public class AuthController {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .avatar(user.getAvatar())
-                .deptId(user.getDeptId())
+                .deptId(deptId)
+                .deptName(sysDept.getName())
                 .permissions(authorities.stream().map(GrantedAuthority::getAuthority).toArray(String[]::new))
                 .roles(loginResult.getRoles())
                 .build();
