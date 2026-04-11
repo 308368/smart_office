@@ -4,7 +4,7 @@ package com.cqf.auth.controller;
 import cn.hutool.core.bean.BeanUtil;
 import com.cqf.auth.model.dto.RoleDTO;
 import com.cqf.auth.model.po.SysRole;
-import com.cqf.auth.model.vo.RoleVO;
+import com.cqf.auth.model.vo.RoleVo;
 import com.cqf.auth.service.ISysRoleService;
 import com.cqf.common.result.Result;
 import lombok.RequiredArgsConstructor;
@@ -29,10 +29,10 @@ public class SysRoleController {
     private final ISysRoleService roleService;
     @GetMapping("/list")
     @PreAuthorize("hasAuthority('system:role:list')")
-    public Result<List<RoleVO>> list() {
+    public Result<List<RoleVo>> list() {
         List<SysRole> list = roleService.list();
-        List<RoleVO> roleVOS = BeanUtil.copyToList(list, RoleVO.class);
-        return Result.success(roleVOS);
+        List<RoleVo> roleVos = BeanUtil.copyToList(list, RoleVo.class);
+        return Result.success(roleVos);
     }
     @PostMapping
     @PreAuthorize("hasAuthority('system:role:add')")

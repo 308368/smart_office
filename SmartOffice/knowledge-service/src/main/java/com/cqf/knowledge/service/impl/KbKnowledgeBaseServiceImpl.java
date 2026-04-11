@@ -9,7 +9,7 @@ import com.cqf.common.enums.KnowledgeStatusEnum;
 import com.cqf.knowledge.model.dto.KnowledgeQueryParam;
 import com.cqf.knowledge.model.po.KbKnowledgeBase;
 import com.cqf.knowledge.mapper.KbKnowledgeBaseMapper;
-import com.cqf.knowledge.model.vo.KnowledgeVO;
+import com.cqf.knowledge.model.vo.KnowledgeVo;
 import com.cqf.knowledge.service.IKbKnowledgeBaseService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class KbKnowledgeBaseServiceImpl extends ServiceImpl<KbKnowledgeBaseMappe
     private final KbKnowledgeBaseMapper kbKnowledgeBaseMapper;
 
     @Override
-    public PageResult<KnowledgeVO> listKnowledge(KnowledgeQueryParam knowledgeQueryParam) {
+    public PageResult<KnowledgeVo> listKnowledge(KnowledgeQueryParam knowledgeQueryParam) {
         Page<KbKnowledgeBase> kbKnowledgeBasePage = new Page<>();
         kbKnowledgeBasePage.setCurrent(knowledgeQueryParam.getCurrent());
         kbKnowledgeBasePage.setSize(knowledgeQueryParam.getSize());
@@ -42,7 +42,7 @@ public class KbKnowledgeBaseServiceImpl extends ServiceImpl<KbKnowledgeBaseMappe
     }
 
     @Override
-    public PageResult<KnowledgeVO> userListKnowledge(Long userId,KnowledgeQueryParam  knowledgeQueryParam) {
+    public PageResult<KnowledgeVo> userListKnowledge(Long userId, KnowledgeQueryParam  knowledgeQueryParam) {
         if (userId == null)return null;
         LambdaQueryWrapper<KbKnowledgeBase> eq = new LambdaQueryWrapper<KbKnowledgeBase>()
                 .eq(KbKnowledgeBase::getCreateBy, userId)
@@ -53,11 +53,11 @@ public class KbKnowledgeBaseServiceImpl extends ServiceImpl<KbKnowledgeBaseMappe
     }
 
     @NotNull
-    private static PageResult<KnowledgeVO> getPageResult(Page<KbKnowledgeBase> kbKnowledgeBasePage) {
-        PageResult<KnowledgeVO> pageResult = new PageResult<>();
+    private static PageResult<KnowledgeVo> getPageResult(Page<KbKnowledgeBase> kbKnowledgeBasePage) {
+        PageResult<KnowledgeVo> pageResult = new PageResult<>();
         List<KbKnowledgeBase> records = kbKnowledgeBasePage.getRecords();
-        List<KnowledgeVO> knowledgeVOS = BeanUtil.copyToList(records, KnowledgeVO.class);
-        pageResult.setRecords(knowledgeVOS);
+        List<KnowledgeVo> knowledgeVos = BeanUtil.copyToList(records, KnowledgeVo.class);
+        pageResult.setRecords(knowledgeVos);
         pageResult.setPages((int) kbKnowledgeBasePage.getPages());
         pageResult.setCurrent((int) kbKnowledgeBasePage.getCurrent());
         pageResult.setSize((int) kbKnowledgeBasePage.getSize());

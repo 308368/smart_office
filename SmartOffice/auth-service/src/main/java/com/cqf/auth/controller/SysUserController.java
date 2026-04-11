@@ -134,5 +134,10 @@ public class SysUserController {
         SysUser one = sysUserService.lambdaQuery().eq(SysUser::getUsername, username).one();
         return one.getId();
     }
+    @GetMapping("/user/{username}")
+    public SysUser getUser(@PathVariable String username) {
+        SysUser one = sysUserService.lambdaQuery().eq(SysUser::getUsername, username).one();
+        return one;
+    }
     
 }

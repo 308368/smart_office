@@ -1,0 +1,10 @@
+server:
+  port: 8083
+
+so:
+  db:
+    database: so-ticket
+
+logging:
+  level:
+    com.cqf.knowledge.mapper: debug

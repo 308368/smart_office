@@ -7,15 +7,13 @@ import com.cqf.common.domain.PageResult;
 import com.cqf.common.result.Result;
 import com.cqf.knowledge.model.dto.KnowledgeQueryParam;
 import com.cqf.knowledge.model.po.KbKnowledgeBase;
-import com.cqf.knowledge.model.vo.KnowledgeVO;
+import com.cqf.knowledge.model.vo.KnowledgeVo;
 import com.cqf.knowledge.service.IKbKnowledgeBaseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -36,27 +34,27 @@ public class KbKnowledgeBaseController {
      */
     @GetMapping("/list")
     @PreAuthorize("hasAuthority('knowledge:list')")
-    public Result<PageResult<KnowledgeVO>> list(KnowledgeQueryParam  knowledgeQueryParam) {
+    public Result<PageResult<KnowledgeVo>> list(KnowledgeQueryParam  knowledgeQueryParam) {
         return Result.success(kbKnowledgeBaseService.listKnowledge(knowledgeQueryParam));
     }
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('knowledge:detail')")
-    public Result<KnowledgeVO> detail(@PathVariable("id") Long id) {
+    public Result<KnowledgeVo> detail(@PathVariable("id") Long id) {
         KbKnowledgeBase knowledgeBase = kbKnowledgeBaseService.getById(id);
-        KnowledgeVO knowledgeVO = new KnowledgeVO();
+        KnowledgeVo knowledgeVO = new KnowledgeVo();
         BeanUtil.copyProperties(knowledgeBase, knowledgeVO);
         return Result.success(knowledgeVO);
     }
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('knowledge:add')")
-    public Result<KnowledgeVO> create(@RequestBody KbKnowledgeBase knowledgeBase) {
+    public Result<KnowledgeVo> create(@RequestBody KbKnowledgeBase knowledgeBase) {
         SecurityContext context = SecurityContextHolder.getContext();
         String username = context.getAuthentication().getName();
         Long userId = authClient.getUserId(username);
         knowledgeBase.setCreateBy(userId);
         knowledgeBase.setDocCount(0);
         kbKnowledgeBaseService.save(knowledgeBase);
-        KnowledgeVO knowledgeVO = BeanUtil.copyProperties(knowledgeBase, KnowledgeVO.class);
+        KnowledgeVo knowledgeVO = BeanUtil.copyProperties(knowledgeBase, KnowledgeVo.class);
         return Result.success(knowledgeVO);
     }
     @PutMapping()
@@ -72,7 +70,7 @@ public class KbKnowledgeBaseController {
         return Result.success();
     }
     @GetMapping("/user/list")
-    public Result<PageResult<KnowledgeVO>> userList(KnowledgeQueryParam  knowledgeQueryParam) {
+    public Result<PageResult<KnowledgeVo>> userList(KnowledgeQueryParam  knowledgeQueryParam) {
         SecurityContext context = SecurityContextHolder.getContext();
         String username = context.getAuthentication().getName();
         Long userId = authClient.getUserId(username);

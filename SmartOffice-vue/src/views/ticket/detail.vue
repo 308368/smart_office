@@ -14,8 +14,10 @@
         </div>
       </div>
       <div class="header-actions">
-        <el-button v-if="ticketInfo.status === 0" type="primary" @click="handleVisible = true">处理</el-button>
-        <el-button v-if="ticketInfo.status !== 3" @click="transferVisible = true">转派</el-button>
+        <el-button v-if="ticketInfo.status === 1" type="primary" @click="startHandle">处理</el-button>
+        <el-button v-if="ticketInfo.status === 2 && ticketInfo.handlerId === userStore.userId" type="success" @click="handleVisible = true">已解决</el-button>
+        <el-button v-if="ticketInfo.status === 1 || ticketInfo.status === 2" @click="transferVisible = true">转派</el-button>
+        <el-button v-if="(ticketInfo.status === 1 || ticketInfo.status === 2 || ticketInfo.status === 3) && ticketInfo.submitterId === userStore.userId" type="info" @click="handleClose">关闭</el-button>
       </div>
     </div>
 
@@ -25,13 +27,13 @@
       <div class="left-panel">
         <el-descriptions title="工单信息" :column="1" border>
           <el-descriptions-item label="工单编号">{{ ticketInfo.ticketNo }}</el-descriptions-item>
-          <el-descriptions-item label="工单类型">{{ ticketInfo.typeName }}</el-descriptions-item>
+          <el-descriptions-item label="工单类型">{{ ticketInfo.category }}</el-descriptions-item>
           <el-descriptions-item label="优先级">{{ getPriorityText(ticketInfo.priority) }}</el-descriptions-item>
           <el-descriptions-item label="状态">{{ getStatusText(ticketInfo.status) }}</el-descriptions-item>
-          <el-descriptions-item label="创建人">{{ ticketInfo.creatorName }} ({{ ticketInfo.creatorDept }})</el-descriptions-item>
+          <el-descriptions-item label="创建人">{{ ticketInfo.submitterName }} ({{ ticketInfo.submitterDept }})</el-descriptions-item>
           <el-descriptions-item label="创建时间">{{ ticketInfo.createTime }}</el-descriptions-item>
           <el-descriptions-item label="处理人">{{ ticketInfo.handlerName || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="完成时间">{{ ticketInfo.completeTime || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="完成时间">{{ ticketInfo.resolveTime || '-' }}</el-descriptions-item>
         </el-descriptions>
 
         <div class="content-section">
@@ -99,8 +101,13 @@
     </el-dialog>
 
     <!-- 转派弹窗 -->
-    <el-dialog v-model="transferVisible" title="转派工单" width="500px">
+    <el-dialog v-model="transferVisible" title="转派工单" width="500px" @open="fetchUsers">
       <el-form label-width="100px">
+        <el-form-item label="转派给">
+          <el-select v-model="targetUserId" placeholder="请选择处理人" style="width: 100%">
+            <el-option v-for="user in userList" :key="user.id" :label="user.nickname" :value="user.id" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="转派原因">
           <el-input v-model="transferReason" type="textarea" :rows="2" placeholder="请输入转派原因..." />
         </el-form-item>
@@ -117,7 +124,9 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getTicketDetail, handleTicket, transferTicket } from '@/api/ticket'
+import { getTicketDetail, handleTicket, transferTicket, resolveTicket, replyTicket, closeTicket } from '@/api/ticket'
+import { getUserList } from '@/api/user'
+import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
 const id = Number(route.params.id)
@@ -144,12 +153,25 @@ const transferVisible = ref(false)
 const handleResult = ref('')
 const transferReason = ref('')
 const replyText = ref('')
+const userList = ref<any[]>([])
+const targetUserId = ref<number>()
+const userStore = useUserStore()
 
 // 获取详情
 const fetchDetail = async () => {
   try {
     const res = await getTicketDetail(id)
     Object.assign(ticketInfo, res.data)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+// 获取用户列表
+const fetchUsers = async () => {
+  try {
+    const res = await getUserList({ current: 1, size: 100 })
+    userList.value = res.data.records || []
   } catch (error) {
     console.error(error)
   }
@@ -170,23 +192,40 @@ const getPriorityText = (priority: number) => {
 }
 
 const getStatusType = (status: number) => {
-  const types: any = { 0: 'warning', 1: 'primary', 2: 'success', 3: 'info' }
+  const types: any = { 1: 'warning', 2: 'primary', 3: 'success', 4: 'info', 5: 'danger' }
   return types[status] || 'info'
 }
 
 const getStatusText = (status: number) => {
-  const texts: any = { 0: '待处理', 1: '处理中', 2: '已完成', 3: '已关闭' }
+  const texts: any = { 1: '待处理', 2: '处理中', 3: '已解决', 4: '已关闭', 5: '已驳回' }
   return texts[status] || '未知'
 }
 
+// 点击处理按钮 - 接单，状态变为处理中
+const startHandle = async () => {
+  try {
+    await handleTicket(id, {
+      handlerId: userStore.userId,
+      handlerName: userStore.nickname
+    })
+    ElMessage.success('已接受工单')
+    fetchDetail()
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+// 点击已解决按钮 - 提交处理结果，状态变为已解决
 const submitHandle = async () => {
   if (!handleResult.value.trim()) {
     ElMessage.warning('请输入处理结果')
     return
   }
   try {
-    await handleTicket(id, { processResult: handleResult.value })
-    ElMessage.success('处理成功')
+    await resolveTicket(id, { remark: handleResult.value })
+    ElMessage.success('工单已解决')
+    handleVisible.value = false
+    fetchDetail()
     handleVisible.value = false
     fetchDetail()
   } catch (error) {
@@ -195,18 +234,41 @@ const submitHandle = async () => {
 }
 
 const submitTransfer = async () => {
+  if (!targetUserId.value) {
+    ElMessage.warning('请选择转派给谁')
+    return
+  }
   try {
-    await transferTicket(id, { targetUserId: 1, reason: transferReason.value })
+    await transferTicket(id, { targetUserId: targetUserId.value, reason: transferReason.value })
     ElMessage.success('转派成功')
     transferVisible.value = false
+    fetchDetail()
   } catch (error) {
     console.error(error)
   }
 }
 
-const handleReply = () => {
-  // TODO: 实现回复功能
-  replyText.value = ''
+const handleReply = async () => {
+  if (!replyText.value.trim()) return
+  try {
+    await replyTicket(id, { content: replyText.value })
+    ElMessage.success('回复成功')
+    replyText.value = ''
+    fetchDetail()
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+// 关闭工单
+const handleClose = async () => {
+  try {
+    await closeTicket(id)
+    ElMessage.success('工单已关闭')
+    fetchDetail()
+  } catch (error) {
+    console.error(error)
+  }
 }
 </script>
 

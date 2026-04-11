@@ -12,10 +12,10 @@
     <!-- 标签页 -->
     <el-tabs v-model="activeTab" @tab-change="handleTabChange" class="status-tabs">
       <el-tab-pane label="全部" name="all" />
-      <el-tab-pane :label="`待处理(${stats.pending})`" name="0" />
-      <el-tab-pane :label="`处理中(${stats.processing})`" name="1" />
-      <el-tab-pane :label="`已完成(${stats.completed})`" name="2" />
-      <el-tab-pane :label="`已关闭(${stats.closed})`" name="3" />
+      <el-tab-pane :label="`待处理(${stats.pending})`" name="1" />
+      <el-tab-pane :label="`处理中(${stats.processing})`" name="2" />
+      <el-tab-pane :label="`已解决(${stats.completed})`" name="3" />
+      <el-tab-pane :label="`已关闭(${stats.closed})`" name="4" />
     </el-tabs>
 
     <!-- 搜索区域 -->
@@ -39,9 +39,9 @@
 
     <!-- 工单列表 -->
     <el-table :data="ticketList" @row-click="goToDetail" row-class-name="ticket-row">
-      <el-table-column prop="ticketNo" label="工单编号" width="140" />
+      <el-table-column prop="ticketNo" label="工单编号" width="180" />
       <el-table-column prop="title" label="标题" min-width="200" />
-      <el-table-column prop="typeName" label="类型" width="100" />
+      <el-table-column prop="category" label="类型" width="100" />
       <el-table-column prop="priority" label="优先级" width="80">
         <template #default="{ row }">
           <el-tag :type="getPriorityType(row.priority)" size="small">
@@ -56,7 +56,7 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="creatorName" label="创建人" width="100" />
+      <el-table-column prop="submitterName" label="创建人" width="100" />
       <el-table-column prop="createTime" label="创建时间" width="160" />
       <el-table-column label="操作" width="100" fixed="right">
         <template #default="{ row }">
@@ -97,6 +97,28 @@
         <el-form-item label="工单内容" prop="content">
           <el-input v-model="form.content" type="textarea" :rows="4" placeholder="请详细描述问题..." />
         </el-form-item>
+        <el-form-item label="附件">
+          <el-upload
+            v-model:file-list="fileList"
+            :action="uploadUrl"
+            :headers="uploadHeaders"
+            :before-upload="beforeUpload"
+            :on-success="handleUploadSuccess"
+            :on-remove="handleRemove"
+            :auto-upload="false"
+            :limit="5"
+            multiple
+            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+          >
+            <el-button type="info" plain>
+              <el-icon><Upload /></el-icon>
+              上传附件
+            </el-button>
+            <template #tip>
+              <div class="el-upload__tip">支持图片、PDF、Word、Excel文件，单个不超过10MB，最多5个</div>
+            </template>
+          </el-upload>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -110,7 +132,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, FormInstance } from 'element-plus'
-import { getTicketList, createTicket, getTicketTypeList } from '@/api/ticket'
+import { getTicketList, createTicket, getTicketTypeList, uploadTicketFile } from '@/api/ticket'
 
 const router = useRouter()
 
@@ -119,6 +141,10 @@ const ticketList = ref<any[]>([])
 const typeList = ref<any[]>([])
 const dialogVisible = ref(false)
 const formRef = ref<FormInstance>()
+
+const fileList = ref<any[]>([])
+const uploadUrl = '/api/office/upload'
+const uploadHeaders = ref({})
 
 const stats = ref({ pending: 5, processing: 12, completed: 98, closed: 13 })
 
@@ -202,21 +228,50 @@ const getPriorityText = (priority: number) => {
 }
 
 const getStatusType = (status: number) => {
-  const types = { 0: 'warning', 1: 'primary', 2: 'success', 3: 'info' }
-  return types[status as keyof typeof types] || 'info'
+  const types: any = { 1: 'warning', 2: 'primary', 3: 'success', 4: 'info', 5: 'danger' }
+  return types[status] || 'info'
 }
 
 const getStatusText = (status: number) => {
-  const texts = { 0: '待处理', 1: '处理中', 2: '已完成', 3: '已关闭' }
-  return texts[status as keyof typeof texts] || '未知'
+  const texts: any = { 1: '待处理', 2: '处理中', 3: '已解决', 4: '已关闭', 5: '已驳回' }
+  return texts[status] || '未知'
 }
 
 const handleCreate = () => {
   form.title = ''
   form.typeId = undefined
+  form.typeName = ''
   form.content = ''
   form.priority = 2
+  fileList.value = []
   dialogVisible.value = true
+}
+
+// 上传前检查
+const beforeUpload = (file: any) => {
+  const isLt10M = file.size / 1024 / 1024 < 10
+  if (!isLt10M) {
+    ElMessage.error('单个文件大小不能超过10MB')
+    return false
+  }
+}
+
+// 上传成功
+const handleUploadSuccess = (response: any, uploadFile: any) => {
+  if (response.code === 200) {
+    const url = response.data
+    uploadFile.url = url
+  } else {
+    ElMessage.error(response.msg || '上传失败')
+  }
+}
+
+// 移除文件
+const handleRemove = (uploadFile: any) => {
+  const index = fileList.value.findIndex(f => f.uid === uploadFile.uid)
+  if (index > -1) {
+    fileList.value.splice(index, 1)
+  }
 }
 
 const handleSubmit = async () => {
@@ -224,9 +279,30 @@ const handleSubmit = async () => {
   await formRef.value.validate(async (valid) => {
     if (valid) {
       const typeItem = typeList.value.find(t => t.id === form.typeId)
-      form.typeName = typeItem?.name || ''
+      const submitData = {
+        ...form,
+        category: typeItem?.name || ''
+      }
       try {
-        await createTicket(form)
+        // 1. 先创建工单，获取工单ID
+        const res = await createTicket(submitData)
+        const ticketId = res.data?.id
+        if (!ticketId) {
+          ElMessage.error('创建工单失败')
+          return
+        }
+
+        // 2. 循环上传附件，传入工单ID
+        for (const file of fileList.value) {
+          if (file.raw) {
+            try {
+              await uploadTicketFile(file.raw, ticketId)
+            } catch (error) {
+              console.error(`文件 ${file.name} 上传失败`, error)
+            }
+          }
+        }
+
         ElMessage.success('创建成功')
         dialogVisible.value = false
         fetchList()

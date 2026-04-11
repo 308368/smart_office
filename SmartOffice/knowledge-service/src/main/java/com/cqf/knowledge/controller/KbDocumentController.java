@@ -9,7 +9,6 @@ import com.cqf.common.result.Result;
 import com.cqf.knowledge.model.dto.DocQueryParam;
 import com.cqf.knowledge.model.po.KbDocument;
 import com.cqf.knowledge.model.vo.DocumentVo;
-import com.cqf.knowledge.model.vo.KnowledgeVO;
 import com.cqf.knowledge.service.IKbDocumentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;

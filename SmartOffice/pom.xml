@@ -19,6 +19,7 @@
         <module>auth-service</module>
         <module>smart-office-gateway</module>
         <module>knowledge-service</module>
+        <module>ticket-service</module>
         <module>so-api</module>
     </modules>
     <properties>

@@ -72,7 +72,7 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
         //获取扩展名
         String extension = fileName.substring(fileName.lastIndexOf("."));
         //获取默认文件夹路径
-        String objectName = getDefaultFolderPath() +kbId+"/"+ SnowflakeIdGenerator.generateIdStr() + extension;
+        String objectName ="acknowledge/"+ getDefaultFolderPath() +kbId+"/"+ SnowflakeIdGenerator.generateIdStr() + extension;
         //创建临时文件
         File tempFile = createTempFile(file);
         String absolutePath = tempFile.getAbsolutePath();
@@ -172,7 +172,7 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
         //创建临时文件夹
         File tempFile = null;
         try {
-            tempFile = File.createTempFile("minio", ".temp");
+            tempFile = File.createTempFile("acknowledgeMinio", ".temp");
             file.transferTo(tempFile);
         } catch (Exception e) {
             throw new RuntimeException("创建临时文件失败");

@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class RoleVO {
+public class RoleVo {
     private Long id;
     private String name;
     private String code;

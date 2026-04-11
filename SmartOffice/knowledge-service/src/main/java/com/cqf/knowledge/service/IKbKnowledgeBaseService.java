@@ -4,7 +4,7 @@ import com.cqf.common.domain.PageResult;
 import com.cqf.knowledge.model.dto.KnowledgeQueryParam;
 import com.cqf.knowledge.model.po.KbKnowledgeBase;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.cqf.knowledge.model.vo.KnowledgeVO;
+import com.cqf.knowledge.model.vo.KnowledgeVo;
 
 /**
  * <p>
@@ -16,7 +16,7 @@ import com.cqf.knowledge.model.vo.KnowledgeVO;
  */
 public interface IKbKnowledgeBaseService extends IService<KbKnowledgeBase> {
 
-    PageResult<KnowledgeVO> listKnowledge(KnowledgeQueryParam knowledgeQueryParam);
+    PageResult<KnowledgeVo> listKnowledge(KnowledgeQueryParam knowledgeQueryParam);
 
-    PageResult<KnowledgeVO> userListKnowledge(Long userId,KnowledgeQueryParam  knowledgeQueryParam);
+    PageResult<KnowledgeVo> userListKnowledge(Long userId, KnowledgeQueryParam  knowledgeQueryParam);
 }
