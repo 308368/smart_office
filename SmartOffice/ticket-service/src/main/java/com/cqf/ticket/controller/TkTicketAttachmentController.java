@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @since 2026-04-08
  */
 @RestController
-@RequestMapping("/office")
+@RequestMapping("/office/ticket")
 @RequiredArgsConstructor
 public class TkTicketAttachmentController {
     private final ITkTicketAttachmentService tkTicketAttachmentService;

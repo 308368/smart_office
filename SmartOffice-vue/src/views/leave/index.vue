@@ -66,29 +66,64 @@
         <!-- 请假记录 -->
         <div class="record-card">
           <h3>📋 请假记录</h3>
-          <el-table :data="leaveList" size="small">
-            <el-table-column prop="leaveType" label="类型" width="70" />
-            <el-table-column prop="startDate" label="开始" width="90" />
-            <el-table-column prop="endDate" label="结束" width="90" />
-            <el-table-column prop="days" label="天数" width="50" />
-            <el-table-column prop="status" label="状态">
-              <template #default="{ row }">
-                <el-tag :type="getStatusType(row.status)" size="small">
-                  {{ getStatusText(row.status) }}
-                </el-tag>
-              </template>
-            </el-table-column>
-          </el-table>
+          <div class="table-wrap">
+            <el-table :data="leaveList" size="small" @row-click="handleView">
+              <el-table-column prop="leaveType" label="类型" width="55" />
+              <el-table-column prop="startDate" label="开始" width="90" />
+              <el-table-column prop="endDate" label="结束" width="90" />
+              <el-table-column prop="days" label="天数" width="45" />
+              <el-table-column prop="status" label="状态" width="70">
+                <template #default="{ row }">
+                  <el-tag :type="getStatusType(row.status)" size="small">
+                    {{ getStatusText(row.status) }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="55" fixed="right">
+                <template #default="{ row }">
+                  <el-button
+                    type="danger"
+                    size="small"
+                    link
+                    @click.stop="handleCancel(row)"
+                    v-if="row.status === 1 || row.status === 2"
+                  >
+                    取消
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- 详情弹窗 -->
+    <el-dialog v-model="detailVisible" title="请假详情" width="500px">
+      <el-descriptions :column="2" border v-if="detailData">
+        <el-descriptions-item label="请假编号">{{ detailData.leaveNo }}</el-descriptions-item>
+        <el-descriptions-item label="请假类型">{{ detailData.leaveType }}</el-descriptions-item>
+        <el-descriptions-item label="开始日期">{{ detailData.startDate }}</el-descriptions-item>
+        <el-descriptions-item label="结束日期">{{ detailData.endDate }}</el-descriptions-item>
+        <el-descriptions-item label="请假天数">{{ detailData.duration }} 天</el-descriptions-item>
+        <el-descriptions-item label="申请状态">
+          <el-tag :type="getStatusType(detailData.status)" size="small">
+            {{ getStatusText(detailData.status) }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="请假原因" :span="2">{{ detailData.reason }}</el-descriptions-item>
+        <el-descriptions-item label="审批人" v-if="detailData.approverName">{{ detailData.approverName }}</el-descriptions-item>
+        <el-descriptions-item label="审批时间" v-if="detailData.approveTime">{{ formatDate(detailData.approveTime) }}</el-descriptions-item>
+        <el-descriptions-item label="审批意见" :span="2" v-if="detailData.approveComment">{{ detailData.approveComment }}</el-descriptions-item>
+      </el-descriptions>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { ElMessage, FormInstance } from 'element-plus'
-import { getLeaveList, createLeave, getLeaveBalance } from '@/api/office'
+import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
+import { getLeaveList, createLeave, getLeaveBalance, cancelLeave, getLeaveDetail } from '@/api/office'
 
 const formRef = ref<FormInstance>()
 
@@ -108,6 +143,8 @@ const rules = {
 
 const leaveBalance = ref<any>({ 年假: 10, 病假: 5, 事假: 3 })
 const leaveList = ref<any[]>([])
+const detailVisible = ref(false)
+const detailData = ref<any>(null)
 
 // 计算请假天数
 const calculateDays = computed(() => {
@@ -144,13 +181,31 @@ onMounted(() => {
 })
 
 const getStatusType = (status: number) => {
-  const types: any = { 0: 'warning', 1: 'success', 2: 'danger', 3: 'info' }
+  const types: any = { 1: 'warning', 2: 'primary', 3: 'success', 4: 'danger', 5: 'info' }
   return types[status] || 'info'
 }
 
 const getStatusText = (status: number) => {
-  const texts: any = { 0: '待审批', 1: '已通过', 2: '已拒绝', 3: '已取消' }
+  const texts: any = { 1: '待审批', 2: '审批中', 3: '已通过', 4: '已拒绝', 5: '已取消' }
   return texts[status] || '未知'
+}
+
+// 格式化日期
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+// 查看详情
+const handleView = async (row: any) => {
+  try {
+    const res = await getLeaveDetail(row.id)
+    detailData.value = res.data
+    detailVisible.value = true
+  } catch (error) {
+    console.error(error)
+  }
 }
 
 const handleSubmit = async () => {
@@ -172,13 +227,29 @@ const handleSubmit = async () => {
     }
   })
 }
+
+const handleCancel = async (row: any) => {
+  try {
+    await ElMessageBox.confirm('确定要取消该请假申请吗？', '提示', {
+      type: 'warning'
+    })
+    await cancelLeave(row.id)
+    ElMessage.success('已取消')
+    fetchList()
+    fetchBalance()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error(error)
+    }
+  }
+}
 </script>
 
 <style scoped lang="scss">
 .leave-page {
   .leave-content {
     display: grid;
-    grid-template-columns: 1fr 400px;
+    grid-template-columns: 1fr 455px;
     gap: 20px;
 
     .leave-form-card {
@@ -246,6 +317,13 @@ const handleSubmit = async () => {
               color: #059669;
             }
           }
+        }
+      }
+
+      .record-card {
+        .table-wrap {
+          max-height: 260px;
+          overflow-y: auto;
         }
       }
     }

@@ -44,7 +44,7 @@ export const useUserStore = defineStore('user', () => {
           'knowledge:kb:list', 'knowledge:kb:add', 'knowledge:kb:edit', 'knowledge:kb:remove',
           'knowledge:doc:add', 'knowledge:doc:remove',
           'office:ticket:list', 'office:ticket:add', 'office:ticket:handle', 'office:ticket:approve',
-          'office:leave:list', 'office:leave:add', 'office:leave:approve',
+          'leave:list', 'leave:add', 'leave:approve',
           'office:notice:list', 'office:notice:add', 'office:notice:remove'
         ]
       }
@@ -97,7 +97,7 @@ export const useUserStore = defineStore('user', () => {
           'knowledge:kb:list', 'knowledge:kb:add', 'knowledge:kb:edit', 'knowledge:kb:remove',
           'knowledge:doc:add', 'knowledge:doc:remove',
           'office:ticket:list', 'office:ticket:add', 'office:ticket:handle', 'office:ticket:approve',
-          'office:leave:list', 'office:leave:add', 'office:leave:approve',
+          'leave:list', 'leave:add', 'leave:approve',
           'office:notice:list', 'office:notice:add', 'office:notice:remove'
         ]
       }

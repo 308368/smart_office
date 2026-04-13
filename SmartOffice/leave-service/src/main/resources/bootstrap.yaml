@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: leave-service
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      server-addr: 192.168.220.100:8848
+      username: nacos
+      password: nacos
+      discovery:
+        namespace: d43fb09d-9144-4b48-94a9-06c078581a8b
+      config:
+        namespace: d43fb09d-9144-4b48-94a9-06c078581a8b
+        group: SmartOffice-project
+        file-extension: yaml
+        shared-configs:
+          - data-id: shared-jdbc.yaml
+            group: SmartOffice-common
+            refresh: true

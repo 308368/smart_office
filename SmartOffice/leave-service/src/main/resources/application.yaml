@@ -1,0 +1,10 @@
+server:
+  port: 8084
+
+so:
+  db:
+    database: so-office
+
+logging:
+  level:
+    com.cqf.leave.mapper: debug

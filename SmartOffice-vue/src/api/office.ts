@@ -15,9 +15,19 @@ export const cancelLeave = (id: number) => {
   return request.put(`/office/leave/cancel/${id}`)
 }
 
+// 请假详情
+export const getLeaveDetail = (id: number) => {
+  return request.get(`/office/leave/${id}`)
+}
+
 // 请假审批
 export const approveLeave = (id: number, data: { approve: boolean; remark?: string }) => {
   return request.put(`/office/leave/approve/${id}`, data)
+}
+
+// 待审批请假列表
+export const getPendingLeaveList = (params?: any) => {
+  return request.get('/office/leave/pending', { params })
 }
 
 // 剩余假期

@@ -55,7 +55,7 @@ export const uploadTicketFile = (file: File, ticketId: number) => {
   const formData = new FormData()
   formData.append('file', file)
   formData.append('ticketId', ticketId.toString())
-  return request.post('/office/upload', formData, {
+  return request.post('/office/ticket/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
 }

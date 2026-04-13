@@ -8,10 +8,12 @@ import com.cqf.common.domain.vo.DeptVo;
 import com.cqf.common.domain.vo.UserVo;
 import com.cqf.common.enums.TicketEnum;
 import com.cqf.common.result.Result;
+import com.cqf.ticket.mapper.TkTicketAttachmentMapper;
 import com.cqf.ticket.mapper.TkTicketReplyMapper;
 import com.cqf.ticket.model.dto.TicketHandleDTO;
 import com.cqf.ticket.model.po.TkTicket;
 import com.cqf.ticket.mapper.TkTicketMapper;
+import com.cqf.ticket.model.po.TkTicketAttachment;
 import com.cqf.ticket.model.po.TkTicketReply;
 import com.cqf.ticket.model.vo.TkTicketDetailVo;
 import com.cqf.ticket.service.ITkTicketService;
@@ -25,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * <p>
@@ -40,6 +43,7 @@ public class TkTicketServiceImpl extends ServiceImpl<TkTicketMapper, TkTicket> i
     private final TkTicketMapper tkTicketMapper;
     private final AuthClient authClient;
     private final TkTicketReplyMapper tkTicketReplyMapper;
+    private final TkTicketAttachmentMapper tkTicketAttachmentMapper;
     @Resource
     @Lazy
     private ITkTicketService currentProxy;
@@ -58,6 +62,11 @@ public class TkTicketServiceImpl extends ServiceImpl<TkTicketMapper, TkTicket> i
         List<TkTicketReply> tkTicketReplies = tkTicketReplyMapper.selectList(new LambdaQueryWrapper<TkTicketReply>()
                 .eq(TkTicketReply::getTicketId, tkTicket.getId()));
         tkTicketDetailVo.setReplies(tkTicketReplies);
+        //获取工单的附件文件
+        List<TkTicketAttachment> tkTicketAttachments = tkTicketAttachmentMapper.selectList(new LambdaQueryWrapper<TkTicketAttachment>()
+                .eq(TkTicketAttachment::getTicketId, tkTicket.getId()));
+        List<String> fileUrls = tkTicketAttachments.stream().map(TkTicketAttachment::getFileUrl).toList();
+        if (fileUrls != null)tkTicketDetailVo.setFileUrls(fileUrls);
         return tkTicketDetailVo;
     }
 

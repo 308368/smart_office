@@ -60,6 +60,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '请假申请', icon: 'Calendar' }
       },
       {
+        path: 'leave/approve',
+        name: 'LeaveApprove',
+        component: () => import('@/views/leave/approve.vue'),
+        meta: { title: '请假审批', icon: 'DocumentChecked', permission: 'leave:approve' }
+      },
+      {
         path: 'notice',
         name: 'Notice',
         component: () => import('@/views/notice/index.vue'),

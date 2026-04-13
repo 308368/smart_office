@@ -45,6 +45,18 @@
           <h3>✅ 处理结果</h3>
           <div class="content-text">{{ ticketInfo.processResult }}</div>
         </div>
+
+        <!-- 附件区域 -->
+        <div class="content-section" v-if="ticketInfo.fileUrls && ticketInfo.fileUrls.length > 0">
+          <h3>📎 附件</h3>
+          <div class="attachment-list">
+            <div class="attachment-item" v-for="(url, index) in ticketInfo.fileUrls" :key="index">
+              <el-icon><Document /></el-icon>
+              <span class="attachment-name">{{ getFileName(url) }}</span>
+              <el-button type="primary" link @click="downloadFile(url)">下载</el-button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 右侧：处理记录 -->
@@ -124,6 +136,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Document, ArrowLeft } from '@element-plus/icons-vue'
 import { getTicketDetail, handleTicket, transferTicket, resolveTicket, replyTicket, closeTicket } from '@/api/ticket'
 import { getUserList } from '@/api/user'
 import { useUserStore } from '@/stores/user'
@@ -270,6 +283,23 @@ const handleClose = async () => {
     console.error(error)
   }
 }
+
+// 获取文件名
+const getFileName = (url: string) => {
+  return url.split('/').pop() || url
+}
+
+// 下载文件
+const downloadFile = (url: string) => {
+  const fullUrl = url.startsWith('http') ? url : import.meta.env.VITE_MINIO_URL + url
+  const link = document.createElement('a')
+  link.href = fullUrl
+  link.download = getFileName(url)
+  link.target = '_blank'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
 </script>
 
 <style scoped lang="scss">
@@ -323,6 +353,24 @@ const handleClose = async () => {
           border-radius: 8px;
           color: #4B5563;
           line-height: 1.6;
+        }
+      }
+
+      .attachment-list {
+        .attachment-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 12px;
+          background: #F9FAFB;
+          border-radius: 8px;
+          margin-bottom: 8px;
+
+          .attachment-name {
+            flex: 1;
+            font-size: 14px;
+            color: #4B5563;
+          }
         }
       }
     }

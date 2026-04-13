@@ -41,6 +41,11 @@
           <span>请假申请</span>
         </el-menu-item>
 
+        <el-menu-item index="/leave/approve" v-if="hasPermission('leave:approve')">
+          <el-icon><DocumentChecked /></el-icon>
+          <span>请假审批</span>
+        </el-menu-item>
+
         <el-menu-item index="/notice" v-if="hasPermission('notice')">
           <el-icon><Bell /></el-icon>
           <span>通知公告</span>
@@ -125,6 +130,11 @@ const isAdmin = computed(() => {
 
 // 检查是否有指定前缀的权限（如 knowledge:xxx 任意一个即可显示知识库菜单）
 const hasPermission = (prefix: string) => {
+  if (prefix.includes(':')) {
+    // 精确权限，如 leave:approve
+    return userStore.permissions.some(p => p === prefix)
+  }
+  // 前缀匹配，如 knowledge
   return userStore.permissions.some(p => p.startsWith(prefix + ':'))
 }
 
