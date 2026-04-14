@@ -50,6 +50,11 @@ export const publishNotice = (data: any) => {
   return request.post('/office/notice', data)
 }
 
+// 更新公告
+export const updateNotice = (data: any) => {
+  return request.put('/office/notice', data)
+}
+
 // 删除公告
 export const deleteNotice = (id: number) => {
   return request.delete(`/office/notice/${id}`)

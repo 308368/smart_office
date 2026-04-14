@@ -13,7 +13,7 @@
     </div>
 
     <!-- 搜索 -->
-    <div class="search-bar" v-if="isAdmin">
+    <div class="search-bar">
       <el-input
         v-model="searchForm.title"
         placeholder="搜索公告标题..."
@@ -28,22 +28,36 @@
       <el-button @click="fetchList">搜索</el-button>
     </div>
 
+    <!-- 标签页 -->
+    <div class="notice-tabs" v-if="isAdmin">
+      <el-tabs v-model="activeTab" @tab-change="handleTabChange">
+        <el-tab-pane label="已发布" name="published" />
+        <el-tab-pane label="草稿箱" name="draft" />
+      </el-tabs>
+    </div>
+
     <!-- 公告列表 -->
     <div class="notice-list">
       <div
         class="notice-item"
-        :class="{ unread: !item.isRead }"
+        :class="{ unread: !item.isRead && activeTab !== 'draft' }"
         v-for="item in noticeList"
         :key="item.id"
-        @click="handleView(item)"
+        @click="activeTab === 'draft' ? handleEdit(item) : handleView(item)"
       >
-        <div class="notice-icon">
-          <span v-if="!item.isRead" class="unread-dot"></span>
-          <span v-else>📄</span>
+        <div class="notice-icon" :class="'type-' + item.noticeType">
+          <span v-if="!item.isRead && activeTab !== 'draft'" class="unread-dot"></span>
+          <span v-else-if="item.noticeType === 1">📢</span>
+          <span v-else>📋</span>
         </div>
         <div class="notice-content">
           <div class="notice-title">
-            <span class="is-top" v-if="item.isTop">置顶</span>
+            <span class="notice-type" :class="'type-' + item.noticeType">
+              {{ item.noticeType === 1 ? '通知' : '公告' }}
+            </span>
+            <span class="priority-tag" :class="'priority-' + item.priority">
+              {{ item.priority === 1 ? '高' : '普通' }}
+            </span>
             {{ item.title }}
           </div>
           <div class="notice-meta">
@@ -78,8 +92,8 @@
       </div>
     </el-dialog>
 
-    <!-- 发布弹窗 -->
-    <el-dialog v-model="publishVisible" title="发布公告" width="600px">
+    <!-- 发布/编辑弹窗 -->
+    <el-dialog v-model="publishVisible" :title="isEditMode ? '编辑公告' : '发布公告'" width="600px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="公告标题" prop="title">
           <el-input v-model="form.title" placeholder="请输入公告标题" />
@@ -87,19 +101,23 @@
         <el-form-item label="公告内容" prop="content">
           <el-input v-model="form.content" type="textarea" :rows="6" placeholder="请输入公告内容..." />
         </el-form-item>
-        <el-form-item label="发布范围">
-          <el-radio-group v-model="form.publishRange">
-            <el-radio label="all">全公司</el-radio>
-            <el-radio label="dept">指定部门</el-radio>
+        <el-form-item label="公告类型" prop="noticeType">
+          <el-radio-group v-model="form.noticeType">
+            <el-radio :label="1">通知</el-radio>
+            <el-radio :label="2">公告</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="是否置顶">
-          <el-switch v-model="form.isTop" />
+        <el-form-item label="优先级" prop="priority">
+          <el-radio-group v-model="form.priority">
+            <el-radio :label="1">高</el-radio>
+            <el-radio :label="2">普通</el-radio>
+          </el-radio-group>
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="publishVisible = false">取消</el-button>
-        <el-button type="primary" @click="handlePublish">发布</el-button>
+        <el-button @click="handleSaveDraft">保存草稿</el-button>
+        <el-button type="primary" @click="handlePublish">立即发布</el-button>
       </template>
     </el-dialog>
   </div>
@@ -108,7 +126,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, FormInstance } from 'element-plus'
-import { getNoticeList, getNoticeDetail, publishNotice, deleteNotice } from '@/api/office'
+import { getNoticeList, getNoticeDetail, publishNotice, updateNotice } from '@/api/office'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
@@ -117,6 +135,8 @@ const noticeList = ref<any[]>([])
 const detailVisible = ref(false)
 const publishVisible = ref(false)
 const formRef = ref<FormInstance>()
+const activeTab = ref('all')
+const isEditMode = ref(false)
 const currentNotice = reactive<any>({
   title: '',
   content: '',
@@ -131,10 +151,12 @@ const searchForm = reactive({ title: '' })
 const pagination = reactive({ current: 1, size: 10, total: 0 })
 
 const form = reactive({
+  id: undefined as number | undefined,
   title: '',
   content: '',
-  publishRange: 'all',
-  isTop: false
+  noticeType: 1,
+  priority: 2,
+  publishStatus: 1
 })
 
 const rules = {
@@ -145,12 +167,25 @@ const rules = {
 // 获取公告列表
 const fetchList = async () => {
   try {
-    const res = await getNoticeList({ ...searchForm, ...pagination })
+    const params: any = { ...searchForm, ...pagination }
+    // 根据标签页筛选
+    if (activeTab.value === 'published' || activeTab.value === 'all') {
+      params.publishStatus = 1
+    } else if (activeTab.value === 'draft') {
+      params.publishStatus = 0
+    }
+    const res = await getNoticeList(params)
     noticeList.value = res.data.records || []
     pagination.total = res.data.total || 0
   } catch (error) {
     console.error(error)
   }
+}
+
+// 标签页切换
+const handleTabChange = () => {
+  pagination.current = 1
+  fetchList()
 }
 
 onMounted(() => {
@@ -170,11 +205,31 @@ const handleView = async (item: any) => {
 }
 
 const handleCreate = () => {
+  isEditMode.value = false
+  form.id = undefined
   form.title = ''
   form.content = ''
-  form.publishRange = 'all'
-  form.isTop = false
+  form.noticeType = 1
+  form.priority = 2
+  form.publishStatus = 0
   publishVisible.value = true
+}
+
+const handleEdit = async (item: any) => {
+  try {
+    const res = await getNoticeDetail(item.id)
+    const data = res.data
+    isEditMode.value = true
+    form.id = data.id
+    form.title = data.title
+    form.content = data.content || ''
+    form.noticeType = data.noticeType
+    form.priority = data.priority
+    form.publishStatus = data.publishStatus
+    publishVisible.value = true
+  } catch (error) {
+    console.error(error)
+  }
 }
 
 const handlePublish = async () => {
@@ -182,8 +237,34 @@ const handlePublish = async () => {
   await formRef.value.validate(async (valid) => {
     if (valid) {
       try {
-        await publishNotice(form)
+        form.publishStatus = 1
+        if (isEditMode.value) {
+          await updateNotice(form)
+        } else {
+          await publishNotice(form)
+        }
         ElMessage.success('发布成功')
+        publishVisible.value = false
+        fetchList()
+      } catch (error) {
+        console.error(error)
+      }
+    }
+  })
+}
+
+const handleSaveDraft = async () => {
+  if (!formRef.value) return
+  await formRef.value.validate(async (valid) => {
+    if (valid) {
+      try {
+        form.publishStatus = 0
+        if (isEditMode.value) {
+          await updateNotice(form)
+        } else {
+          await publishNotice(form)
+        }
+        ElMessage.success('草稿保存成功')
         publishVisible.value = false
         fetchList()
       } catch (error) {
@@ -203,6 +284,13 @@ const handlePublish = async () => {
     background: #FFFFFF;
     padding: 16px 20px;
     border-radius: 12px;
+  }
+
+  .notice-tabs {
+    background: #FFFFFF;
+    padding: 0 20px;
+    border-radius: 12px;
+    margin-top: 16px;
   }
 
   .notice-list {
@@ -250,6 +338,16 @@ const handlePublish = async () => {
           background: #EF4444;
           border-radius: 50%;
         }
+
+        &.type-1 {
+          background: #EFF6FF;
+          border-radius: 8px;
+        }
+
+        &.type-2 {
+          background: #FEF3C7;
+          border-radius: 8px;
+        }
       }
 
       .notice-content {
@@ -261,14 +359,41 @@ const handlePublish = async () => {
           font-weight: 500;
           margin-bottom: 8px;
 
-          .is-top {
+          .notice-type {
             display: inline-block;
             padding: 2px 8px;
-            background: #FEE2E2;
-            color: #DC2626;
             font-size: 12px;
             border-radius: 4px;
             margin-right: 8px;
+
+            &.type-1 {
+              background: #DBEAFE;
+              color: #1D4ED8;
+            }
+
+            &.type-2 {
+              background: #FEF3C7;
+              color: #B45309;
+            }
+          }
+
+          .priority-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+            margin-right: 8px;
+
+            &.priority-1 {
+              background: #FEE2E2;
+              color: #DC2626;
+              font-weight: bold;
+            }
+
+            &.priority-2 {
+              background: #F3F4F6;
+              color: #6B7280;
+            }
           }
         }
 
