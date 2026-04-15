@@ -41,7 +41,7 @@ public class OfNoticeController {
     private final IOfNoticeReadService noticeReadService;
     private final AuthClient authClient;
     @GetMapping("/list")
-    @PreAuthorize("hasAuthority('notice:list')")
+//    @PreAuthorize("hasAuthority('notice:list')")
     public Result<PageResult<NoticeVo>> list(NoticeQueryParam  param) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         Long userId = authClient.getUserId(username);
@@ -92,6 +92,12 @@ public class OfNoticeController {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         SysUser user = authClient.getUser(username);
         noticeService.updateNotice(noticeDTO);
+        return Result.success();
+    }
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('notice:remove')")
+    public Result delete(@PathVariable Long id) {
+        noticeService.removeById(id);
         return Result.success();
     }
 

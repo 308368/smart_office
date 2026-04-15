@@ -32,6 +32,7 @@ import java.time.LocalDateTime;
 public class OfNoticeServiceImpl extends ServiceImpl<OfNoticeMapper, OfNotice> implements IOfNoticeService {
     private final OfNoticeMapper noticeMapper;
     private final OfNoticeReadMapper noticeReadMapper;
+    private final NoticeWebSocketService noticeWebSocketService;
 
     @Override
     @Transactional
@@ -71,6 +72,8 @@ public class OfNoticeServiceImpl extends ServiceImpl<OfNoticeMapper, OfNotice> i
         if (noticeDTO.getPublishStatus()==1){
             ofNotice.setPublishTime(LocalDateTime.now());
             ofNotice.setViewCount(0);
+            //发送通知
+            noticeWebSocketService.sentNoticePublish(ofNotice.getTitle(), ofNotice.getContent());
         }
         int insert = noticeMapper.insert(ofNotice);
         if (insert<0){
@@ -86,7 +89,11 @@ public class OfNoticeServiceImpl extends ServiceImpl<OfNoticeMapper, OfNotice> i
             throw new RuntimeException("通知公告不存在");
         }
         BeanUtils.copyProperties(noticeDTO, ofNotice);
-        if (noticeDTO.getPublishStatus()==1) ofNotice.setPublishTime(LocalDateTime.now());
+        if (noticeDTO.getPublishStatus()==1) {
+            ofNotice.setPublishTime(LocalDateTime.now());
+            //发送通知
+            noticeWebSocketService.sentNoticePublish(ofNotice.getTitle(), ofNotice.getContent());
+        }
         noticeMapper.updateById(ofNotice);
     }
 }

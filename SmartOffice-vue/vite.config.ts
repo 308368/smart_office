@@ -6,6 +6,10 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
+  define: {
+    // 解决 sockjs-client 使用 global 变量的问题
+    global: 'window'
+  },
   plugins: [
     vue(),
     AutoImport({
@@ -30,6 +34,11 @@ export default defineConfig({
         target: 'http://localhost:8088',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
+      },
+      '/ws': {
+        target: 'http://localhost:8084',
+        changeOrigin: true,
+        ws: true  // 支持 WebSocket 升级
       }
     }
   }

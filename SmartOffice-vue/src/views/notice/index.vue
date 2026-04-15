@@ -64,6 +64,14 @@
             <span>{{ item.publisherName }}</span>
             <span>{{ item.publishTime }}</span>
             <span>👁 {{ item.viewCount }}</span>
+            <el-button
+              type="danger"
+              link
+              v-if="userStore.hasPermission('notice:remove')"
+              @click.stop="handleDelete(item)"
+            >
+              删除
+            </el-button>
           </div>
         </div>
       </div>
@@ -125,8 +133,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { ElMessage, FormInstance } from 'element-plus'
-import { getNoticeList, getNoticeDetail, publishNotice, updateNotice } from '@/api/office'
+import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
+import { getNoticeList, getNoticeDetail, publishNotice, updateNotice, deleteNotice } from '@/api/office'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
@@ -175,7 +183,21 @@ const fetchList = async () => {
       params.publishStatus = 0
     }
     const res = await getNoticeList(params)
-    noticeList.value = res.data.records || []
+    let list = res.data.records || []
+    // 未读公告置顶，多条未读按 priority 排序，再按发布日期排序
+    list.sort((a, b) => {
+      // 先按是否未读排序（未读在前）
+      if (a.isRead !== b.isRead) {
+        return a.isRead ? 1 : -1
+      }
+      // 再按 priority 排序（1高优先级在前）
+      if (a.priority !== b.priority) {
+        return (a.priority || 2) - (b.priority || 2)
+      }
+      // 最后按发布日期排序（新的在前）
+      return new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime()
+    })
+    noticeList.value = list
     pagination.total = res.data.total || 0
   } catch (error) {
     console.error(error)
@@ -272,6 +294,17 @@ const handleSaveDraft = async () => {
       }
     }
   })
+}
+
+const handleDelete = async (item: any) => {
+  try {
+    await ElMessageBox.confirm('确定删除该公告吗？', '提示', { type: 'warning' })
+    await deleteNotice(item.id)
+    ElMessage.success('删除成功')
+    fetchList()
+  } catch (error) {
+    console.error(error)
+  }
 }
 </script>
 

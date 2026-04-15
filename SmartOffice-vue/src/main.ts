@@ -1,3 +1,8 @@
+// SockJS 兼容 polyfill
+if (typeof global === 'undefined') {
+  (window as any).global = window
+}
+
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
@@ -9,6 +14,7 @@ import 'nprogress/nprogress.css'
 import App from './App.vue'
 import router from './router'
 import './styles/index.scss'
+import { connectWebSocket } from '@/utils/websocket'
 
 const app = createApp(App)
 
@@ -20,5 +26,8 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 app.use(createPinia())
 app.use(router)
 app.use(ElementPlus, { locale: zhCn })
+
+// 建立 WebSocket 连接（接收公告推送等实时通知）
+connectWebSocket()
 
 app.mount('#app')
