@@ -14,7 +14,7 @@ spring:
         similarity: cosine
     openai:
       base-url: https://dashscope.aliyuncs.com/compatible-mode
-      api-key: sk-d8e5a3032add493fa25471802a2dcf82
+      api-key: ${apikey}
       chat:
         options:
           model: qwen-max
