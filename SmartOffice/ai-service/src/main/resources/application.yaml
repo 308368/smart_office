@@ -1,0 +1,36 @@
+spring:
+  elasticsearch:
+    uris: 192.168.220.100:9201
+  servlet:
+    multipart:
+      max-file-size: 30MB
+      max-request-size: 40MB
+  ai:
+    vectorstore:
+      elasticsearch:
+        initialize-schema: true
+        index-name: kb_document_chunk
+        dimensions: 1536
+        similarity: cosine
+    openai:
+      base-url: https://dashscope.aliyuncs.com/compatible-mode
+      api-key: sk-d8e5a3032add493fa25471802a2dcf82
+      chat:
+        options:
+          model: qwen-max
+      embedding:
+        options:
+          model: text-embedding-v4
+#          dimensions: 1024
+          dimensions: 1536
+server:
+  port: 8085
+
+so:
+  db:
+    database: so-chat
+
+logging:
+  level:
+    com.cqf.knowledge.mapper: debug
+

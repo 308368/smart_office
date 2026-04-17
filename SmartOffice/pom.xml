@@ -21,6 +21,7 @@
         <module>knowledge-service</module>
         <module>ticket-service</module>
         <module>office-service</module>
+        <module>ai-service</module>
         <module>so-api</module>
     </modules>
     <properties>
