@@ -1,93 +1,124 @@
 <template>
   <div class="ai-chat-page">
-    <!-- 顶部知识库选择 -->
-    <div class="chat-header">
-      <h2>🤖 AI 智能助手</h2>
-      <div class="kb-selector">
-        <el-select v-model="selectedKbId" placeholder="请选择知识库" clearable @change="handleKbChange">
-          <el-option
-            v-for="kb in groupedKbList"
-            :key="kb.kbId"
-            :label="kb.kbName"
-            :value="kb.kbId"
-          >
-            <span>{{ kb.kbName }}</span>
-            <span class="doc-count">({{ kb.docs.length }}篇)</span>
-          </el-option>
-        </el-select>
-        <el-checkbox-group v-model="selectedDocIds" @change="handleDocChange">
-          <el-checkbox
-            v-for="doc in currentKbDocs"
-            :key="doc.docId"
-            :label="doc.docId"
-          >
-            {{ doc.docTitle }}
-            <el-tag size="small" type="info">{{ doc.fileType }}</el-tag>
-          </el-checkbox>
-        </el-checkbox-group>
-        <el-button link type="primary" @click="handleClear" :disabled="selectedDocIds.length === 0">
-          清空已选
+    <!-- 左侧会话列表 -->
+    <div class="session-sidebar">
+      <div class="sidebar-header">
+        <span>会话列表</span>
+        <el-button type="primary" link @click="handleNewSession">
+          <el-icon><Plus /></el-icon>
+          新会话
         </el-button>
+      </div>
+      <div class="session-list">
+        <div
+          v-for="session in sessionList"
+          :key="session.id"
+          class="session-item"
+          :class="{ active: currentSessionId === session.id }"
+          @click="handleSelectSession(session)"
+        >
+          <div class="session-info">
+            <div class="session-title">{{ session.title || '新会话' }}</div>
+            <div class="session-time">{{ formatTime(session.updateTime) }}</div>
+          </div>
+          <el-button
+            type="danger"
+            link
+            class="delete-btn"
+            @click.stop="handleDeleteSession(session.id)"
+          >
+            <el-icon><Delete /></el-icon>
+          </el-button>
+        </div>
+        <div v-if="sessionList.length === 0" class="empty-tip">
+          暂无会话记录
+        </div>
       </div>
     </div>
 
-    <!-- 对话区域 -->
-    <div class="chat-container" ref="chatContainer">
-      <div class="chat-messages">
-        <!-- 欢迎消息 -->
-        <div class="message ai-message" v-if="messages.length === 0">
-          <div class="avatar">🤖</div>
-          <div class="message-content">
-            <p>您好！我是您的智能办公助手</p>
-            <p>我可以帮您解答公司制度、流程等问题，也可以帮您查找知识库中的文档内容。</p>
-            <p>请在上方选择知识库，然后开始提问吧~</p>
-          </div>
+    <!-- 右侧聊天区域 -->
+    <div class="chat-main">
+      <!-- 顶部知识库选择 -->
+      <div class="chat-header">
+        <h2>🤖 AI 智能助手</h2>
+        <div class="kb-selector">
+          <el-select v-model="selectedKbId" placeholder="请选择知识库" clearable @change="handleKbChange">
+            <el-option
+              v-for="kb in groupedKbList"
+              :key="kb.kbId"
+              :label="kb.kbName"
+              :value="kb.kbId"
+            >
+              <span>{{ kb.kbName }}</span>
+              <span class="doc-count">({{ kb.docs.length }}篇)</span>
+            </el-option>
+          </el-select>
+          <el-checkbox-group v-model="selectedDocIds" @change="handleDocChange">
+            <el-checkbox
+              v-for="doc in currentKbDocs"
+              :key="doc.docId"
+              :label="doc.docId"
+            >
+              {{ doc.docTitle }}
+              <el-tag size="small" type="info">{{ doc.fileType }}</el-tag>
+            </el-checkbox>
+          </el-checkbox-group>
+          <el-button link type="primary" @click="handleClear" :disabled="selectedDocIds.length === 0">
+            清空已选
+          </el-button>
         </div>
+      </div>
 
-        <!-- 消息列表 -->
-        <div
-          class="message"
-          :class="msg.role === 'user' ? 'user-message' : 'ai-message'"
-          v-for="(msg, index) in messages"
-          :key="index"
-        >
-          <div class="avatar">{{ msg.role === 'user' ? '👤' : '🤖' }}</div>
-          <div class="message-content">
-            <div class="content-text" v-html="formatContent(msg.content)"></div>
-            <!-- AI思考中 -->
-            <div class="thinking" v-if="msg.thinking && !msg.content">
-              <span class="dot"></span>
-              <span class="dot"></span>
-              <span class="dot"></span>
+      <!-- 对话区域 -->
+      <div class="chat-container" ref="chatContainer">
+        <div class="chat-messages">
+          <!-- 欢迎消息 -->
+          <div class="message ai-message" v-if="messages.length === 0">
+            <div class="avatar">🤖</div>
+            <div class="message-content">
+              <p>您好！我是您的智能办公助手</p>
+              <p>我可以帮您解答公司制度、流程等问题，也可以帮您查找知识库中的文档内容。</p>
+              <p>请在上方选择知识库，然后开始提问吧~</p>
             </div>
-            <!-- 引用来源 -->
-            <div class="references" v-if="msg.references && msg.references.length > 0">
-              <div class="ref-title">📎 参考来源：</div>
-              <div class="ref-item" v-for="ref in msg.references" :key="ref.docId">
-                {{ ref.docTitle }}
-                <span class="score">相似度: {{ (ref.score * 100).toFixed(1) }}%</span>
+          </div>
+
+          <!-- 消息列表 -->
+          <div
+            class="message"
+            :class="msg.role === 'user' ? 'user-message' : 'ai-message'"
+            v-for="(msg, index) in messages"
+            :key="index"
+          >
+            <div class="avatar">{{ msg.role === 'user' ? '👤' : '🤖' }}</div>
+            <div class="message-content">
+              <div class="content-text" v-html="formatContent(msg.content)"></div>
+              <!-- AI思考中 -->
+              <div class="thinking" v-if="msg.thinking && !msg.content">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 输入区域 -->
-    <div class="chat-input">
-      <el-input
-        v-model="inputText"
-        type="textarea"
-        :rows="2"
-        placeholder="请输入问题，按Enter发送..."
-        resize="none"
-        :disabled="loading"
-        @keydown.enter.exact.prevent="handleSend"
-      />
-      <el-button type="primary" :loading="loading" @click="handleSend">
-        <el-icon><Promotion /></el-icon>
-        发送
-      </el-button>
+      <!-- 输入区域 -->
+      <div class="chat-input">
+        <el-input
+          v-model="inputText"
+          type="textarea"
+          :rows="2"
+          placeholder="请输入问题，按Enter发送..."
+          resize="none"
+          :disabled="loading"
+          @keydown.enter.exact.prevent="handleSend"
+        />
+        <el-button type="primary" :loading="loading" @click="handleSend">
+          <el-icon><Promotion /></el-icon>
+          发送
+        </el-button>
+      </div>
     </div>
   </div>
 </template>
@@ -96,7 +127,7 @@
 import { ref, reactive, onMounted, nextTick, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getAIKnowledgeList } from '@/api/ai'
+import { getAIKnowledgeList, getChatHistory, getChatMessages, deleteChatHistory, createChatSession } from '@/api/ai'
 import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
@@ -121,7 +152,18 @@ interface AIMessage {
   content: string
   thinking?: boolean
   sessionId?: string
-  references?: any[]
+}
+
+interface Session {
+  id: number
+  sessionNo: string
+  title: string
+  model: string
+  status: number
+  messageCount: number
+  lastMessage: string
+  createTime: string
+  updateTime: string
 }
 
 const docList = ref<DocItem[]>([])
@@ -132,6 +174,10 @@ const inputText = ref('')
 const loading = ref(false)
 const thinking = ref(false)
 const chatContainer = ref<HTMLElement>()
+
+// 会话相关
+const sessionList = ref<Session[]>([])
+const currentSessionId = ref<number | null>(null)
 
 // 按知识库分组
 const groupedKbList = computed(() => {
@@ -152,18 +198,87 @@ const currentKbDocs = computed(() => {
   return kb ? kb.docs : []
 })
 
+// 格式化时间
+const formatTime = (timeStr: string) => {
+  if (!timeStr) return ''
+  const date = new Date(timeStr)
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  if (diff < 60000) return '刚刚'
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`
+  return `${Math.floor(diff / 86400000)}天前`
+}
+
+// 加载会话列表
+const loadSessionList = async () => {
+  try {
+    const res = await getChatHistory()
+    sessionList.value = res.data || []
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+// 创建新会话
+const handleNewSession = async () => {
+  try {
+    const res = await createChatSession()
+    const newSession = res.data as Session
+    sessionList.value.unshift(newSession)
+    handleSelectSession(newSession)
+  } catch (error) {
+    console.error(error)
+    ElMessage.error('创建会话失败')
+  }
+}
+
+// 选择会话
+const handleSelectSession = async (session: Session) => {
+  currentSessionId.value = session.id
+  messages.length = 0
+
+  try {
+    const res = await getChatMessages(session.id)
+    const historyMessages = res.data || []
+    historyMessages.forEach((msg: any) => {
+      messages.push({
+        role: msg.role,
+        content: msg.content
+      })
+    })
+    scrollToBottom()
+  } catch (error) {
+    console.error(error)
+    ElMessage.error('加载会话消息失败')
+  }
+}
+
+// 删除会话
+const handleDeleteSession = async (sessionId: number) => {
+  try {
+    await deleteChatHistory(sessionId)
+    sessionList.value = sessionList.value.filter(s => s.id !== sessionId)
+    if (currentSessionId.value === sessionId) {
+      currentSessionId.value = null
+      messages.length = 0
+    }
+    ElMessage.success('删除成功')
+  } catch (error) {
+    console.error(error)
+    ElMessage.error('删除失败')
+  }
+}
+
 // 初始化
 onMounted(async () => {
   // 获取知识库列表
-  // 有 knowledge:list 权限传1，否则传0
   const isOwe = userStore.permissions.includes('knowledge:list') ? 1 : 0
   try {
     const res = await getAIKnowledgeList(isOwe)
     docList.value = res.data || []
-    // 默认选择第一个知识库
     if (groupedKbList.value.length > 0) {
       selectedKbId.value = groupedKbList.value[0].kbId
-      // 默认选择第一篇文档
       if (groupedKbList.value[0].docs.length > 0) {
         selectedDocIds.value = [groupedKbList.value[0].docs[0].docId]
       }
@@ -171,6 +286,9 @@ onMounted(async () => {
   } catch (error) {
     console.error(error)
   }
+
+  // 加载会话列表
+  await loadSessionList()
 
   // 检查是否有传递问题
   if (route.query.q) {
@@ -189,14 +307,10 @@ const scrollToBottom = () => {
 }
 
 // 选择知识库
-const handleKbChange = () => {
-  // 切换知识库时不清空之前的文档选择
-}
+const handleKbChange = () => {}
 
 // 选择文档
-const handleDocChange = () => {
-  // 可以在这里保存用户的选择
-}
+const handleDocChange = () => {}
 
 // 清空已选
 const handleClear = () => {
@@ -212,7 +326,6 @@ const handleSend = async () => {
   }
 
   const question = inputText.value.trim()
-  const sessionId = messages.length > 0 ? messages[0].sessionId : undefined
 
   // 添加用户消息
   messages.push({ role: 'user', content: question })
@@ -240,7 +353,7 @@ const handleSend = async () => {
       body: JSON.stringify({
         docIds: selectedDocIds.value,
         question,
-        sessionId
+        sessionId: currentSessionId.value
       })
     })
 
@@ -262,7 +375,6 @@ const handleSend = async () => {
 
       buffer += decoder.decode(value, { stream: true })
 
-      // 提取所有 data: 开头的内容
       const regex = /data:\s*(\{[^}]+\})/g
       let match: RegExpExecArray | null
       while ((match = regex.exec(buffer)) !== null) {
@@ -274,13 +386,18 @@ const handleSend = async () => {
           }
           if (json.sessionId) {
             aiMessage.sessionId = json.sessionId
+            // 更新当前会话ID
+            if (!currentSessionId.value) {
+              currentSessionId.value = parseInt(json.sessionId)
+              // 刷新会话列表
+              loadSessionList()
+            }
           }
         } catch {
           // 解析失败忽略
         }
       }
 
-      // 清理已处理的数据
       const lastDataIndex = buffer.lastIndexOf('}')
       if (lastDataIndex !== -1) {
         buffer = buffer.substring(lastDataIndex + 1)
@@ -292,7 +409,6 @@ const handleSend = async () => {
   } catch (error) {
     console.error(error)
     ElMessage.error('请求失败，请稍后重试')
-    // 移除失败的 AI 消息
     const index = messages.indexOf(aiMessage)
     if (index > -1) {
       messages.splice(index, 1)
@@ -306,7 +422,6 @@ const handleSend = async () => {
 // 格式化内容
 const formatContent = (content: string) => {
   if (!content) return ''
-  // 换行处理
   return content.replace(/\n/g, '<br>')
 }
 </script>
@@ -314,11 +429,102 @@ const formatContent = (content: string) => {
 <style scoped lang="scss">
 .ai-chat-page {
   display: flex;
-  flex-direction: column;
   height: calc(100vh - 140px);
   background: #FFFFFF;
   border-radius: 12px;
   overflow: hidden;
+
+  .session-sidebar {
+    width: 260px;
+    background: #F9FAFB;
+    border-right: 1px solid #E5E7EB;
+    display: flex;
+    flex-direction: column;
+
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      border-bottom: 1px solid #E5E7EB;
+
+      span {
+        font-weight: 600;
+        color: #1F2937;
+      }
+    }
+
+    .session-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+
+      .session-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-bottom: 4px;
+        transition: background 0.2s;
+
+        &:hover {
+          background: #E5E7EB;
+
+          .delete-btn {
+            opacity: 1;
+          }
+        }
+
+        &.active {
+          background: #10B981;
+
+          .session-title, .session-time {
+            color: #FFFFFF;
+          }
+        }
+
+        .session-info {
+          flex: 1;
+          overflow: hidden;
+
+          .session-title {
+            font-size: 14px;
+            color: #1F2937;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .session-time {
+            font-size: 12px;
+            color: #9CA3AF;
+            margin-top: 4px;
+          }
+        }
+
+        .delete-btn {
+          opacity: 0;
+          transition: opacity 0.2s;
+        }
+      }
+
+      .empty-tip {
+        text-align: center;
+        color: #9CA3AF;
+        font-size: 14px;
+        padding: 20px;
+      }
+    }
+  }
+
+  .chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 
   .chat-header {
     display: flex;

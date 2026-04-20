@@ -1,14 +1,5 @@
 import request from '@/utils/request'
 
-// AI问答（非流式）
-export const chat = (data: {
-  kbIds: number[]
-  question: string
-  sessionId?: string
-}) => {
-  return request.post('/ai/chat', data)
-}
-
 // AI问答（流式）
 export const chatStream = (params: {
   kbIds: string
@@ -18,14 +9,24 @@ export const chatStream = (params: {
   return request.get('/ai/chat/stream', { params, responseType: 'text' })
 }
 
-// 对话历史列表
-export const getChatHistory = (params?: { sessionId?: string; current?: number; size?: number }) => {
-  return request.get('/ai/history', { params })
+// 获取会话历史列表
+export const getChatHistory = () => {
+  return request.get('/ai/history')
 }
 
-// 删除对话历史
-export const deleteChatHistory = (id: number) => {
-  return request.delete(`/ai/history/${id}`)
+// 获取指定会话的消息列表
+export const getChatMessages = (sessionId: number) => {
+  return request.get(`/ai/history/${sessionId}/messages`)
+}
+
+// 删除会话
+export const deleteChatHistory = (sessionId: number) => {
+  return request.delete(`/ai/history/${sessionId}`)
+}
+
+// 创建新会话
+export const createChatSession = () => {
+  return request.post('/ai/session')
 }
 
 // 获取知识库列表（供AI对话选择）
