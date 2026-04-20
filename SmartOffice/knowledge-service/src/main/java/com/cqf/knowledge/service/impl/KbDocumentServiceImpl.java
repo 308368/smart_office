@@ -1,45 +1,46 @@
 package com.cqf.knowledge.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.cqf.api.client.AuthClient;
+import com.cqf.api.client.VectorFeignClient;
 import com.cqf.common.constants.MQConstants;
+import com.cqf.common.domain.vo.DocumentVo;
 import com.cqf.common.utils.RabbitMqHelper;
 import com.cqf.common.utils.SnowflakeIdGenerator;
+import com.cqf.knowledge.mapper.KbDocumentChunkMapper;
 import com.cqf.knowledge.mapper.KbKnowledgeBaseMapper;
 import com.cqf.knowledge.model.po.KbDocument;
 import com.cqf.knowledge.mapper.KbDocumentMapper;
+import com.cqf.knowledge.model.po.KbDocumentChunk;
 import com.cqf.knowledge.model.po.KbKnowledgeBase;
-import com.cqf.knowledge.model.vo.DocumentVo;
 import com.cqf.knowledge.service.IKbDocumentService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.RemoveObjectArgs;
 import io.minio.UploadObjectArgs;
-import io.minio.errors.*;
 import io.seata.spring.annotation.GlobalTransactional;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.io.IOUtils;
-import org.checkerframework.checker.units.qual.K;
-import org.checkerframework.checker.units.qual.min;
 import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * <p>
@@ -53,11 +54,14 @@ import java.util.Date;
 @RequiredArgsConstructor
 @Slf4j
 public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocument> implements IKbDocumentService {
+    private final KbDocumentChunkMapper kbDocumentChunkMapper;
     private final KbDocumentMapper kbDocumentMapper;
     private final KbKnowledgeBaseMapper kbKnowledgeBaseMapper;
     private final MinioClient minioClient;
     private final AuthClient authClient;
     private final RabbitMqHelper rabbitMqHelper;
+    private final VectorFeignClient vectorFeignClient;
+    private final ObjectMapper objectMapper;
     @Resource
     @Lazy
     private IKbDocumentService currentProxy;
@@ -228,10 +232,30 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
             log.error("文档不存在,{}", docId);
             throw new RuntimeException("文档不存在");
         }
+
+        // 1. 先删除ES向量库中的向量数据
+        List<String> vectorIds = getVectorIdsByDocId(docId);
+        if (!vectorIds.isEmpty()) {
+            try {
+                vectorFeignClient.deleteVectors(vectorIds);
+                log.info("删除ES向量成功, docId={}, vectorIds={}", docId, vectorIds);
+            } catch (Exception e) {
+                log.error("删除ES向量失败, docId={}", docId, e);
+                throw new RuntimeException("删除ES向量失败");
+            }
+        }
+
+        // 2. 删除数据库中的文档记录
         int i = kbDocumentMapper.deleteById(docId);
         if (i < 0) {
             log.error("删除文档失败,{}", docId);
             throw new RuntimeException("删除文档失败");
+        }
+        //删除分块中的数据
+        int docId1 = kbDocumentChunkMapper.delete(new QueryWrapper<KbDocumentChunk>().eq("doc_id", docId));
+        if (docId1 < 0) {
+            log.error("删除文档分块失败,{}", docId);
+            throw new RuntimeException("删除文档分块失败");
         }
         log.info("删除文档成功,{}", docId);
         KbKnowledgeBase kbKnowledgeBase = kbKnowledgeBaseMapper.selectById(kbId);
@@ -244,6 +268,23 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
         log.info("更新知识库文档数量成功,{}", kbKnowledgeBase.toString());
         //删除minio中的文档信息
         removeFileMinIO(kbDocument);
+    }
+    public List<String> getVectorIdsByDocId(Long docId) {
+        List<KbDocumentChunk> chunks = kbDocumentChunkMapper.selectList(new QueryWrapper<KbDocumentChunk>().eq("doc_id", docId));
+        List<String> vectorIds = new ArrayList<>();
+        for (KbDocumentChunk chunk : chunks) {
+            String vectorJson = chunk.getVector();
+            if (vectorJson != null && !vectorJson.isEmpty()) {
+                try {
+                    JsonNode jsonNode = objectMapper.readTree(vectorJson);
+                    String vectorId = jsonNode.get("vectorId").asText();
+                    vectorIds.add(vectorId);
+                } catch (Exception e) {
+                    log.error("解析vector JSON失败: {}", vectorJson, e);
+                }
+            }
+        }
+        return vectorIds;
     }
 
     private void removeFileMinIO(KbDocument kbDocument) {

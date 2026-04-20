@@ -2,4 +2,10 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.cqf.knowledge.mapper.KbDocumentChunkMapper">
 
+    <insert id="saveBatch">
+        insert into kb_document_chunk (doc_id, chunk_index, content, vector) values
+        <foreach item="item" index="index" collection="list" separator=",">
+            (#{item.docId}, #{item.chunkIndex}, #{item.content}, #{item.vector})
+        </foreach>
+    </insert>
 </mapper>

@@ -4,12 +4,30 @@
     <div class="chat-header">
       <h2>🤖 AI 智能助手</h2>
       <div class="kb-selector">
-        <span class="label">请选择知识库：</span>
-        <el-checkbox-group v-model="selectedKbIds" @change="handleKbChange">
-          <el-checkbox v-for="kb in kbList" :key="kb.id" :label="kb.id">
-            {{ kb.name }}
+        <el-select v-model="selectedKbId" placeholder="请选择知识库" clearable @change="handleKbChange">
+          <el-option
+            v-for="kb in groupedKbList"
+            :key="kb.kbId"
+            :label="kb.kbName"
+            :value="kb.kbId"
+          >
+            <span>{{ kb.kbName }}</span>
+            <span class="doc-count">({{ kb.docs.length }}篇)</span>
+          </el-option>
+        </el-select>
+        <el-checkbox-group v-model="selectedDocIds" @change="handleDocChange">
+          <el-checkbox
+            v-for="doc in currentKbDocs"
+            :key="doc.docId"
+            :label="doc.docId"
+          >
+            {{ doc.docTitle }}
+            <el-tag size="small" type="info">{{ doc.fileType }}</el-tag>
           </el-checkbox>
         </el-checkbox-group>
+        <el-button link type="primary" @click="handleClear" :disabled="selectedDocIds.length === 0">
+          清空已选
+        </el-button>
       </div>
     </div>
 
@@ -36,6 +54,12 @@
           <div class="avatar">{{ msg.role === 'user' ? '👤' : '🤖' }}</div>
           <div class="message-content">
             <div class="content-text" v-html="formatContent(msg.content)"></div>
+            <!-- AI思考中 -->
+            <div class="thinking" v-if="msg.thinking && !msg.content">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
             <!-- 引用来源 -->
             <div class="references" v-if="msg.references && msg.references.length > 0">
               <div class="ref-title">📎 参考来源：</div>
@@ -43,18 +67,6 @@
                 {{ ref.docTitle }}
                 <span class="score">相似度: {{ (ref.score * 100).toFixed(1) }}%</span>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 加载中 -->
-        <div class="message ai-message" v-if="loading">
-          <div class="avatar">🤖</div>
-          <div class="message-content">
-            <div class="loading">
-              <span class="dot"></span>
-              <span class="dot"></span>
-              <span class="dot"></span>
             </div>
           </div>
         </div>
@@ -69,6 +81,7 @@
         :rows="2"
         placeholder="请输入问题，按Enter发送..."
         resize="none"
+        :disabled="loading"
         @keydown.enter.exact.prevent="handleSend"
       />
       <el-button type="primary" :loading="loading" @click="handleSend">
@@ -80,29 +93,80 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, nextTick, watch } from 'vue'
+import { ref, reactive, onMounted, nextTick, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { chat, getAIKnowledgeList } from '@/api/ai'
+import { getAIKnowledgeList } from '@/api/ai'
+import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
+const userStore = useUserStore()
 
-const kbList = ref<any[]>([])
-const selectedKbIds = ref<number[]>([])
-const messages = reactive<any[]>([])
+interface DocItem {
+  docId: number
+  docTitle: string
+  kbId: number
+  kbName: string
+  fileType: string
+}
+
+interface KbGroup {
+  kbId: number
+  kbName: string
+  docs: DocItem[]
+}
+
+interface AIMessage {
+  role: string
+  content: string
+  thinking?: boolean
+  sessionId?: string
+  references?: any[]
+}
+
+const docList = ref<DocItem[]>([])
+const selectedKbId = ref<number | null>(null)
+const selectedDocIds = ref<number[]>([])
+const messages = reactive<AIMessage[]>([])
 const inputText = ref('')
 const loading = ref(false)
+const thinking = ref(false)
 const chatContainer = ref<HTMLElement>()
+
+// 按知识库分组
+const groupedKbList = computed(() => {
+  const map = new Map<number, KbGroup>()
+  for (const doc of docList.value) {
+    if (!map.has(doc.kbId)) {
+      map.set(doc.kbId, { kbId: doc.kbId, kbName: doc.kbName, docs: [] })
+    }
+    map.get(doc.kbId)!.docs.push(doc)
+  }
+  return Array.from(map.values())
+})
+
+// 当前选中知识库的文档列表
+const currentKbDocs = computed(() => {
+  if (!selectedKbId.value) return []
+  const kb = groupedKbList.value.find(k => k.kbId === selectedKbId.value)
+  return kb ? kb.docs : []
+})
 
 // 初始化
 onMounted(async () => {
   // 获取知识库列表
+  // 有 knowledge:list 权限传1，否则传0
+  const isOwe = userStore.permissions.includes('knowledge:list') ? 1 : 0
   try {
-    const res = await getAIKnowledgeList()
-    kbList.value = res.data || []
-    // 默认选择第一个
-    if (kbList.value.length > 0) {
-      selectedKbIds.value = [kbList.value[0].id]
+    const res = await getAIKnowledgeList(isOwe)
+    docList.value = res.data || []
+    // 默认选择第一个知识库
+    if (groupedKbList.value.length > 0) {
+      selectedKbId.value = groupedKbList.value[0].kbId
+      // 默认选择第一篇文档
+      if (groupedKbList.value[0].docs.length > 0) {
+        selectedDocIds.value = [groupedKbList.value[0].docs[0].docId]
+      }
     }
   } catch (error) {
     console.error(error)
@@ -126,14 +190,24 @@ const scrollToBottom = () => {
 
 // 选择知识库
 const handleKbChange = () => {
+  // 切换知识库时不清空之前的文档选择
+}
+
+// 选择文档
+const handleDocChange = () => {
   // 可以在这里保存用户的选择
 }
 
-// 发送消息
+// 清空已选
+const handleClear = () => {
+  selectedDocIds.value = []
+}
+
+// 发送消息（流式）
 const handleSend = async () => {
   if (!inputText.value.trim()) return
-  if (selectedKbIds.value.length === 0) {
-    ElMessage.warning('请先选择知识库')
+  if (selectedDocIds.value.length === 0) {
+    ElMessage.warning('请先选择文档')
     return
   }
 
@@ -144,28 +218,88 @@ const handleSend = async () => {
   messages.push({ role: 'user', content: question })
   inputText.value = ''
   loading.value = true
+  thinking.value = true
   scrollToBottom()
 
+  // 创建 AI 消息占位
+  const aiMessage = reactive<AIMessage>({
+    role: 'ai',
+    content: '',
+    thinking: true
+  })
+  messages.push(aiMessage)
+
   try {
-    const res = await chat({
-      kbIds: selectedKbIds.value,
-      question,
-      sessionId
+    const token = localStorage.getItem('token')
+    const response = await fetch('/api/ai/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      },
+      body: JSON.stringify({
+        docIds: selectedDocIds.value,
+        question,
+        sessionId
+      })
     })
 
-    const data = res.data
-    messages.push({
-      role: 'ai',
-      content: data.answer,
-      references: data.references,
-      sessionId: data.sessionId
-    })
+    if (!response.ok) {
+      throw new Error('请求失败')
+    }
+
+    if (!response.body) {
+      throw new Error('响应体为空')
+    }
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+
+      // 提取所有 data: 开头的内容
+      const regex = /data:\s*(\{[^}]+\})/g
+      let match: RegExpExecArray | null
+      while ((match = regex.exec(buffer)) !== null) {
+        try {
+          const json = JSON.parse(match[1])
+          if (json.content) {
+            aiMessage.content += json.content
+            scrollToBottom()
+          }
+          if (json.sessionId) {
+            aiMessage.sessionId = json.sessionId
+          }
+        } catch {
+          // 解析失败忽略
+        }
+      }
+
+      // 清理已处理的数据
+      const lastDataIndex = buffer.lastIndexOf('}')
+      if (lastDataIndex !== -1) {
+        buffer = buffer.substring(lastDataIndex + 1)
+      }
+    }
+
+    aiMessage.thinking = false
     scrollToBottom()
   } catch (error) {
     console.error(error)
     ElMessage.error('请求失败，请稍后重试')
+    // 移除失败的 AI 消息
+    const index = messages.indexOf(aiMessage)
+    if (index > -1) {
+      messages.splice(index, 1)
+    }
   } finally {
     loading.value = false
+    thinking.value = false
   }
 }
 
@@ -202,15 +336,30 @@ const formatContent = (content: string) => {
     .kb-selector {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
+      flex: 1;
 
-      .label {
-        font-size: 14px;
-        color: #6B7280;
+      .el-select {
+        width: 200px;
+      }
+
+      .doc-count {
+        color: #999;
+        font-size: 12px;
+      }
+
+      .el-checkbox-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
       }
 
       .el-checkbox {
-        margin-right: 16px;
+        margin-right: 0;
+      }
+
+      .el-tag {
+        margin-left: 4px;
       }
     }
   }
@@ -305,13 +454,14 @@ const formatContent = (content: string) => {
         }
       }
 
-      .loading {
+      .thinking {
         display: flex;
         gap: 4px;
+        margin-top: 8px;
 
         .dot {
-          width: 8px;
-          height: 8px;
+          width: 6px;
+          height: 6px;
           background: #10B981;
           border-radius: 50%;
           animation: bounce 1.4s infinite ease-in-out both;

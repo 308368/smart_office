@@ -3,6 +3,8 @@ package com.cqf.knowledge.mapper;
 import com.cqf.knowledge.model.po.KbDocumentChunk;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
+import java.util.List;
+
 /**
  * <p>
  * 文档向量切片表 Mapper 接口
@@ -13,4 +15,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 public interface KbDocumentChunkMapper extends BaseMapper<KbDocumentChunk> {
 
+    boolean saveBatch(List<KbDocumentChunk> kbDocumentChunks);
 }

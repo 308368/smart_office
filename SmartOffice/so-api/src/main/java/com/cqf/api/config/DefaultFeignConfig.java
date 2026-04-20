@@ -22,7 +22,7 @@ public class DefaultFeignConfig {
                 //获取当前的请求对象
                 ServletRequestAttributes attributes =
                         (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-                System.out.println("=== Feign Interceptor Debug ===");
+                System.out.println("=== Feign 拦截器 Debug ===");
                 System.out.println("attributes: " + attributes);
                 if (attributes != null){
                     HttpServletRequest request = attributes.getRequest();

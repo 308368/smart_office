@@ -29,6 +29,7 @@ export const deleteChatHistory = (id: number) => {
 }
 
 // 获取知识库列表（供AI对话选择）
-export const getAIKnowledgeList = () => {
-  return request.get('/ai/kb/list')
+// isOwe: 1-有knowledge:list权限，可看所有知识库文档；0-只能看公开和自己创建的
+export const getAIKnowledgeList = (isOwe: number) => {
+  return request.get(`/ai/kb/list/${isOwe}`)
 }

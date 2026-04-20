@@ -1,11 +1,10 @@
 package com.cqf.knowledge.service;
 
+import com.cqf.common.domain.vo.DocumentVo;
 import com.cqf.knowledge.model.po.KbDocument;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.cqf.knowledge.model.vo.DocumentVo;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.InputStream;
 
 /**

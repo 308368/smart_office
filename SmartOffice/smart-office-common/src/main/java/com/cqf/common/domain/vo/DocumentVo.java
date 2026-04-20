@@ -1,4 +1,4 @@
-package com.cqf.knowledge.model.vo;
+package com.cqf.common.domain.vo;
 
 import lombok.Data;
 
@@ -9,6 +9,7 @@ public class DocumentVo {
     private Long id;
     private String title;
     private Long kbId;
+    private String kbName;
     private String content;
     private String fileUrl;
     private String fileType;

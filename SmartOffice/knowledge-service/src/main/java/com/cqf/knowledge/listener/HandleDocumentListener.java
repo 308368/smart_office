@@ -1,6 +1,7 @@
 package com.cqf.knowledge.listener;
 
 import com.cqf.common.constants.MQConstants;
+import com.cqf.common.domain.dto.DocumentChunkMsg;
 import com.cqf.knowledge.model.po.KbDocument;
 import com.cqf.knowledge.service.IKbDocumentService;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
@@ -24,6 +26,7 @@ import java.io.InputStream;
 @Component
 @RequiredArgsConstructor
 public class HandleDocumentListener {
+    private final RabbitTemplate rabbitTemplate;
     private final IKbDocumentService kbDocumentService;
     private final Tika tika;
 
@@ -53,8 +56,15 @@ public class HandleDocumentListener {
 
             String content = parseContent(inputStream, fileType);
             document.setContent(content);
-            document.setStatus(2);
+            document.setStatus(1);//状态 0待处理 1处理中 2已完成 3处理失败
             kbDocumentService.updateById(document);
+            // 发送MQ消息给ai-service进行向量化
+            DocumentChunkMsg msg = new DocumentChunkMsg();
+            msg.setKbId(document.getKbId());
+            msg.setDocumentId(document.getId());
+            msg.setFileUrl(fileUrl);
+            msg.setFileName(document.getTitle());
+            rabbitTemplate.convertAndSend(MQConstants.EXCHANGE_NAME_AI,MQConstants.DOCUMENT_KEY_AI,msg);
         } catch (IOException e) {
             log.error("解析文档内容失败，文档ID：{}", id, e);
             document.setStatus(3);
@@ -70,6 +80,7 @@ public class HandleDocumentListener {
                 }
             }
         }
+
         //TODO:向前端推送解析成功消息
 
     }
@@ -87,7 +98,6 @@ public class HandleDocumentListener {
      *   <li>其他格式 - 使用Tika自动解析</li>
      * </ul>
      * TODO:对解析后的内容进行分块
-     * @param fileBytes 文件字节数据
      * @param fileType  文件类型（MIME类型或文件扩展名）
      * @return 解析后的文本内容
      * @throws IOException   IO异常

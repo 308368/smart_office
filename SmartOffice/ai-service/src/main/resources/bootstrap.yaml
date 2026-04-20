@@ -15,10 +15,16 @@ spring:
         group: SmartOffice-project
         file-extension: yaml
         shared-configs:
+          - data-id: ai-service-dev.yaml
+            group: SmartOffice-project
+            refresh: true
           - data-id: shared-jdbc.yaml
             group: SmartOffice-common
             refresh: true
-#          - data-id: shared-elasticsearch.yaml
-#            group: SmartOffice-common
-#            refresh: true
+          - data-id: share-elasticsearch.yaml
+            group: SmartOffice-common
+            refresh: true
+          - data-id: share-rabbitmq.yaml
+            group: SmartOffice-common
+            refresh: true
 
