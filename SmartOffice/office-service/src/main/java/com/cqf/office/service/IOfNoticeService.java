@@ -5,6 +5,9 @@ import com.cqf.office.model.dto.AUNoticeDTO;
 import com.cqf.office.model.dto.NoticeDTO;
 import com.cqf.office.model.po.OfNotice;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.cqf.office.model.vo.NoticeHomeVo;
+
+import java.util.List;
 
 /**
  * <p>
@@ -21,4 +24,6 @@ public interface IOfNoticeService extends IService<OfNotice> {
     void publishNotice(AUNoticeDTO noticeDTO, SysUser user);
 
     void updateNotice(AUNoticeDTO noticeDTO);
+
+    List<NoticeHomeVo> home(Long userId);
 }

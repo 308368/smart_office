@@ -96,6 +96,11 @@ public class KbDocumentController {
         }
         return documentVos;
     }
+    @GetMapping("/total")
+    public Long total() {
+        List<KbDocument> list = kbDocumentService.list();
+        return (long) list.size();
+    }
 
 
 }

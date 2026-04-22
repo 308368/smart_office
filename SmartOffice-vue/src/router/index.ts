@@ -110,10 +110,18 @@ router.beforeEach((to, from, next) => {
     if (token) {
       // 检查权限
       const userStore = useUserStore()
-      if (!userStore.userId) {
+      // 只有非 mock-token 的真实 token 才调用 getUserInfo
+      if (!userStore.userId && !token.startsWith('mock-token-')) {
         userStore.getUserInfo().then(() => {
           next()
+        }).catch(() => {
+          localStorage.removeItem('token')
+          localStorage.removeItem('userId')
+          next('/login')
         })
+      } else if (!userStore.userId && token.startsWith('mock-token-')) {
+        // mock-token 使用模拟数据，直接放行
+        next()
       } else {
         next()
       }

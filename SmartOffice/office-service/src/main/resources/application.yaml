@@ -7,4 +7,4 @@ so:
 
 logging:
   level:
-    com.cqf.leave.mapper: debug
+    com.cqf.office.mapper: debug

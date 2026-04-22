@@ -6,6 +6,7 @@ import com.cqf.ai.model.dto.ChatRequest;
 import com.cqf.ai.model.po.ChatMessage;
 import com.cqf.ai.mapper.ChatMessageMapper;
 import com.cqf.ai.model.po.ChatSession;
+import com.cqf.ai.model.vo.ChatCount;
 import com.cqf.ai.model.vo.MessageVO;
 import com.cqf.ai.service.IChatMessageService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -53,12 +54,9 @@ import static org.springframework.ai.chat.memory.ChatMemory.CONVERSATION_ID;
 @Service
 @RequiredArgsConstructor
 public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatMessage> implements IChatMessageService {
-    private final ChatClient chatClient;
     private final ChatClient pdfChatClient;
-    private final ChatMemory chatMemory;
     private final ChatMessageMapper chatMessageMapper;
     private final IChatSessionService chatSessionService;
-    private final VectorStore vectorStore;
     private final ObjectMapper objectMapper;
     @Resource
     @Lazy
@@ -181,5 +179,10 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
             BeanUtil.copyProperties(msg, vo);
             return vo;
         }).toList();
+    }
+
+    @Override
+    public List<ChatCount> chatCount() {
+        return chatMessageMapper.selectDailyChatCount();
     }
 }

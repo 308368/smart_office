@@ -58,11 +58,11 @@
       <!-- 对话趋势图 -->
       <div class="page-card chart-card">
         <div class="card-header">
-          <h3>📈 最近7天对话趋势</h3>
+          <h3>📈 最近对话趋势</h3>
         </div>
         <div class="chart-container">
           <div class="simple-chart">
-            <div class="chart-bar" v-for="(value, index) in chartData" :key="index" :style="{ height: value + '%' }">
+            <div class="chart-bar" v-for="(value, index) in chartData" :key="index" :style="{ height: getBarHeight(value) + '%' }">
               <span class="chart-value">{{ chartValues[index] }}</span>
             </div>
           </div>
@@ -86,7 +86,7 @@
             </div>
             <div class="ticket-meta">
               <span class="ticket-type">{{ item.typeName }}</span>
-              <span class="ticket-time">{{ item.createTime }}</span>
+              <span class="ticket-time">{{ formatDateTime(item.createTime) }}</span>
             </div>
           </div>
           <el-empty v-if="pendingTickets.length === 0" description="暂无待处理工单" :image-size="60" />
@@ -110,7 +110,7 @@
             </div>
             <div class="notice-meta">
               <span>{{ item.publisherName }}</span>
-              <span>{{ item.publishTime }}</span>
+              <span>{{ formatDateTime(item.publishTime) }}</span>
             </div>
           </div>
           <el-empty v-if="notices.length === 0" description="暂无公告" :image-size="60" />
@@ -150,32 +150,27 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { Search } from '@element-plus/icons-vue'
+import { getDashboardStats, getChatStats, getPendingTicketList, getHomeNotices } from '@/api/dashboard'
+import { formatDateTime } from '@/utils/format'
 
 const router = useRouter()
 const userStore = useUserStore()
 
 const stats = ref({
-  docCount: 128,
-  pendingTicket: 5,
-  pendingLeave: 3,
-  chatCount: 156
+  docCount: 0,
+  pendingTicket: 0,
+  pendingLeave: 0,
+  chatCount: 0
 })
 
-const chartData = ref([30, 50, 65, 80, 60, 75, 90])
-const chartValues = ref([20, 35, 45, 60, 40, 55, 70])
-const chartLabels = ref(['周一', '周二', '周三', '周四', '周五', '周六', '周日'])
+const chartData = ref<number[]>([])
+const chartValues = ref<number[]>([])
+const chartLabels = ref<string[]>([])
 
-const pendingTickets = ref([
-  { id: 1, title: '打印机故障', typeName: 'IT支持', priority: 1, createTime: '10:30' },
-  { id: 2, title: '网络无法连接', typeName: 'IT支持', priority: 1, createTime: '09:45' },
-  { id: 3, title: '申请年假', typeName: '人事', priority: 2, createTime: '昨天' }
-])
+const pendingTickets = ref<any[]>([])
+const notices = ref<any[]>([])
 
-const notices = ref([
-  { id: 1, title: '关于2024年清明节放假安排的通知', publisherName: '人事行政部', publishTime: '2024-03-20', isRead: false },
-  { id: 2, title: '2024年度员工体检通知', publisherName: '人事行政部', publishTime: '2024-03-18', isRead: true },
-  { id: 3, title: '系统升级维护通知', publisherName: '技术部', publishTime: '2024-03-15', isRead: true }
-])
+const loading = ref(false)
 
 const quickQuestion = ref('')
 const quickQuestions = ref([
@@ -183,6 +178,52 @@ const quickQuestions = ref([
   '如何申请报销？',
   '公司考勤制度是什么？'
 ])
+
+onMounted(async () => {
+  loading.value = true
+  try {
+    // 获取统计数据
+    try {
+      const statsRes = await getDashboardStats()
+      stats.value = statsRes.data
+    } catch (e) {
+      console.error('获取统计数据失败', e)
+    }
+
+    // 获取图表数据
+    try {
+      const chartRes = await getChatStats()
+      if (chartRes.data && chartRes.data.length > 0) {
+        chartData.value = chartRes.data.map((item: any) => item.count)
+        chartValues.value = chartRes.data.map((item: any) => item.count)
+        chartLabels.value = chartRes.data.map((item: any) => formatChartLabel(item.date))
+      }
+    } catch (e) {
+      console.error('获取图表数据失败', e)
+    }
+
+    // 获取待处理工单
+    try {
+      const ticketRes = await getPendingTicketList({ current: 1, size: 5 })
+      pendingTickets.value = ticketRes.data?.records || []
+    } catch (e) {
+      console.error('获取工单列表失败', e)
+    }
+
+    // 获取公告列表
+    try {
+      const noticeRes = await getHomeNotices({ size: 5 })
+      notices.value = noticeRes.data || []
+    } catch (e) {
+      console.error('获取公告列表失败', e)
+    }
+
+  } catch (error) {
+    console.error('获取首页数据失败:', error)
+  } finally {
+    loading.value = false
+  }
+})
 
 const getPriorityType = (priority: number) => {
   const types = { 1: 'danger', 2: 'warning', 3: 'info' }
@@ -192,6 +233,25 @@ const getPriorityType = (priority: number) => {
 const getPriorityText = (priority: number) => {
   const texts = { 1: '紧急', 2: '普通', 3: '低' }
   return texts[priority as keyof typeof texts] || '普通'
+}
+
+const formatChartLabel = (dateStr: string) => {
+  if (!dateStr) return ''
+  // dateStr 格式: "2026-04-22" -> "04-22"
+  const parts = dateStr.split('-')
+  if (parts.length === 3) {
+    return `${parts[1]}-${parts[2]}`
+  }
+  return dateStr
+}
+
+// 根据数据动态计算柱形高度，最小10%保证可见性
+const getBarHeight = (value: number) => {
+  if (!chartValues.value || chartValues.value.length === 0) return 10
+  const max = Math.max(...chartValues.value)
+  if (max === 0) return 10
+  const height = (value / max) * 100
+  return Math.max(height, 10) // 最小10%保证可见
 }
 
 const goToAI = () => {

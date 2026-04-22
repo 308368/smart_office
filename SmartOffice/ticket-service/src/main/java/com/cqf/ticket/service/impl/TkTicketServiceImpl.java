@@ -26,7 +26,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -117,6 +119,31 @@ public class TkTicketServiceImpl extends ServiceImpl<TkTicketMapper, TkTicket> i
         tkTicketMapper.updateById(tkTicket);
         //添加工单回复
         currentProxy.addTicketReply(ticketId, remark, tkTicket.getHandlerId(), tkTicket.getHandlerName());
+    }
+
+    @Override
+    public Map<String, Long> getstats() {
+        Map<String, Long> stats = new HashMap<>();
+        // 待处理: status = 1
+        stats.put("pending", tkTicketMapper.selectCount(
+                new LambdaQueryWrapper<TkTicket>().eq(TkTicket::getStatus, TicketEnum.WAIT_HANDLE.getStatus())
+        ));
+
+        // 处理中: status = 2
+        stats.put("processing", tkTicketMapper.selectCount(
+                new LambdaQueryWrapper<TkTicket>().eq(TkTicket::getStatus, TicketEnum.HANDLING.getStatus())
+        ));
+
+        // 已解决: status = 3
+        stats.put("completed", tkTicketMapper.selectCount(
+                new LambdaQueryWrapper<TkTicket>().eq(TkTicket::getStatus, TicketEnum.SOLVED.getStatus())
+        ));
+
+        // 已关闭: status = 4
+        stats.put("closed", tkTicketMapper.selectCount(
+                new LambdaQueryWrapper<TkTicket>().eq(TkTicket::getStatus, TicketEnum.CLOSED.getStatus())
+        ));
+        return stats;
     }
 
     @Override

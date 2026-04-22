@@ -75,8 +75,8 @@
         </div>
 
         <div class="header-right">
-          <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="message-badge">
-            <el-icon :size="20"><Bell /></el-icon>
+          <el-badge :value="noticeStore.unreadCount" :hidden="noticeStore.unreadCount === 0" class="message-badge">
+            <el-icon :size="20" @click="goToNotice"><Bell /></el-icon>
           </el-badge>
 
           <el-dropdown @command="handleCommand">
@@ -112,14 +112,14 @@
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { getUnreadCount } from '@/api/office'
+import { useNoticeStore } from '@/stores/notice'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const noticeStore = useNoticeStore()
 
 const collapse = ref(false)
-const unreadCount = ref(0)
 
 const activeMenu = computed(() => route.path)
 
@@ -140,12 +140,13 @@ const hasPermission = (prefix: string) => {
 
 // 获取未读消息数
 const fetchUnreadCount = async () => {
-  try {
-    const res = await getUnreadCount()
-    unreadCount.value = res.data
-  } catch (error) {
-    console.error(error)
-  }
+  await noticeStore.fetchUnreadCount()
+}
+
+// 跳转到通知公告页面
+const goToNotice = async () => {
+  // await fetchUnreadCount()
+  router.push('/notice')
 }
 
 fetchUnreadCount()

@@ -62,7 +62,7 @@
           </div>
           <div class="notice-meta">
             <span>{{ item.publisherName }}</span>
-            <span>{{ item.publishTime }}</span>
+            <span>{{ formatDateTime(item.publishTime) }}</span>
             <span>👁 {{ item.viewCount }}</span>
             <el-button
               type="danger"
@@ -93,7 +93,7 @@
       <div class="notice-detail">
         <div class="detail-meta">
           <span>发布人：{{ currentNotice.publisherName }}</span>
-          <span>发布时间：{{ currentNotice.publishTime }}</span>
+          <span>发布时间：{{ formatDateTime(currentNotice.publishTime) }}</span>
           <span>阅读量：{{ currentNotice.viewCount }}</span>
         </div>
         <div class="detail-content" v-html="currentNotice.content"></div>
@@ -136,8 +136,11 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
 import { getNoticeList, getNoticeDetail, publishNotice, updateNotice, deleteNotice } from '@/api/office'
 import { useUserStore } from '@/stores/user'
+import { useNoticeStore } from '@/stores/notice'
+import { formatDateTime } from '@/utils/format'
 
 const userStore = useUserStore()
+const noticeStore = useNoticeStore()
 
 const noticeList = ref<any[]>([])
 const detailVisible = ref(false)
@@ -217,6 +220,7 @@ onMounted(() => {
 const handleView = async (item: any) => {
   try {
     const res = await getNoticeDetail(item.id)
+    await noticeStore.fetchUnreadCount()
     Object.assign(currentNotice, res.data)
     detailVisible.value = true
     // 刷新列表更新已读状态
@@ -265,6 +269,7 @@ const handlePublish = async () => {
         } else {
           await publishNotice(form)
         }
+        await noticeStore.fetchUnreadCount()
         ElMessage.success('发布成功')
         publishVisible.value = false
         fetchList()
@@ -300,6 +305,7 @@ const handleDelete = async (item: any) => {
   try {
     await ElMessageBox.confirm('确定删除该公告吗？', '提示', { type: 'warning' })
     await deleteNotice(item.id)
+    await noticeStore.fetchUnreadCount()
     ElMessage.success('删除成功')
     fetchList()
   } catch (error) {

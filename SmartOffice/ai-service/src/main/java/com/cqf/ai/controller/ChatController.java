@@ -4,10 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.cqf.ai.model.dto.ChatRequest;
 import com.cqf.ai.model.po.ChatMessage;
 import com.cqf.ai.model.po.ChatSession;
-import com.cqf.ai.model.vo.ChatResponse;
-import com.cqf.ai.model.vo.KbSimpleVO;
-import com.cqf.ai.model.vo.MessageVO;
-import com.cqf.ai.model.vo.SessionVO;
+import com.cqf.ai.model.vo.*;
 import com.cqf.ai.service.IChatMessageService;
 import com.cqf.ai.service.IChatSessionService;
 import com.cqf.api.client.AuthClient;
@@ -98,6 +95,18 @@ public class ChatController {
             return kbSimpleVO;
         }).toList();
         return Result.success(list);
+    }
+    @GetMapping("/chat/stats")
+    public Result<List<ChatCount>> chatCount() {
+        List<ChatCount> chatCount =chatMessageService.chatCount();
+        return Result.success(chatCount);
+    }
+    @GetMapping("/chat/count")
+    public Long count() {
+        Long cnt = chatMessageService.lambdaQuery()
+                .eq(ChatMessage::getRole, "user")
+                .count();
+        return cnt;
     }
 
 }

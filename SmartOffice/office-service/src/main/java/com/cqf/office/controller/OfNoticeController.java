@@ -2,16 +2,20 @@ package com.cqf.office.controller;
 
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cqf.api.client.AuthClient;
 import com.cqf.common.domain.PageResult;
 import com.cqf.common.domain.po.SysUser;
 import com.cqf.common.result.Result;
+import com.cqf.office.enums.NoticeStatusEnum;
 import com.cqf.office.model.dto.AUNoticeDTO;
 import com.cqf.office.model.dto.NoticeDTO;
 import com.cqf.office.model.dto.NoticeQueryParam;
 import com.cqf.office.model.po.OfNotice;
 import com.cqf.office.model.po.OfNoticeRead;
+import com.cqf.office.model.vo.NoticeHomeVo;
 import com.cqf.office.model.vo.NoticeVo;
 import com.cqf.office.service.IOfNoticeReadService;
 import com.cqf.office.service.IOfNoticeService;
@@ -19,10 +23,12 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -96,9 +102,32 @@ public class OfNoticeController {
     }
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('notice:remove')")
+    @Transactional
     public Result delete(@PathVariable Long id) {
         noticeService.removeById(id);
+        noticeReadService.remove(new LambdaQueryWrapper<OfNoticeRead>().eq(OfNoticeRead::getNoticeId,id));
         return Result.success();
+    }
+    @GetMapping("/unreadCount")
+    public Result<Long> unreadCount() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Long userId = authClient.getUserId(username);
+        Long total = noticeService.lambdaQuery()
+                .eq(OfNotice::getPublishStatus, NoticeStatusEnum.RELEASED.getStatus())
+                .count();
+        List<OfNoticeRead> noticeReadList = noticeReadService.lambdaQuery()
+                .eq(OfNoticeRead::getUserId, userId).list();
+        Set<Long> readNotice = noticeReadList.stream().map(OfNoticeRead::getNoticeId).collect(Collectors.toSet());
+        Integer readCount = readNotice.size();
+        Long unread = total - readCount;
+        return Result.success(unread);
+    }
+    @GetMapping("/home")
+    public Result<List<NoticeHomeVo>> home() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Long userId = authClient.getUserId(username);
+        List<NoticeHomeVo> noticeDTOList =noticeService.home(userId);
+        return Result.success(noticeDTOList);
     }
 
 

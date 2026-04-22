@@ -20,6 +20,14 @@ public class VectorFeignClientFactory implements FallbackFactory<VectorFeignClie
                 log.error("deleteVectors error:{}", cause.getMessage());
                 return null;
             }
+
+            @Override
+            public Long count() {
+                log.info("计算ai对话次数异常{}",cause.getMessage());
+                log.error("count error:{}", cause.getMessage());
+                return 0L;
+//                return null;
+            }
         };
     }
 }

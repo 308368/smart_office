@@ -72,5 +72,5 @@ export const markMessageRead = (id: number) => {
 
 // 未读数量
 export const getUnreadCount = () => {
-  return request.get('/office/message/unreadCount')
+  return request.get('/office/notice/unreadCount')
 }

@@ -57,7 +57,11 @@
         </template>
       </el-table-column>
       <el-table-column prop="submitterName" label="创建人" width="100" />
-      <el-table-column prop="createTime" label="创建时间" width="160" />
+      <el-table-column label="创建时间" width="160">
+        <template #default="{ row }">
+          {{ formatDateTime(row.createTime) }}
+        </template>
+      </el-table-column>
       <el-table-column label="操作" width="100" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" link @click.stop="goToDetail(row.id)">查看</el-button>
@@ -132,7 +136,8 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, FormInstance } from 'element-plus'
-import { getTicketList, createTicket, getTicketTypeList, uploadTicketFile } from '@/api/ticket'
+import { getTicketList, createTicket, getTicketTypeList, uploadTicketFile, getTicketStats } from '@/api/ticket'
+import { formatDateTime } from '@/utils/format'
 
 const router = useRouter()
 
@@ -146,7 +151,7 @@ const fileList = ref<any[]>([])
 const uploadUrl = '/api/office/upload'
 const uploadHeaders = ref({})
 
-const stats = ref({ pending: 5, processing: 12, completed: 98, closed: 13 })
+const stats = ref({ pending: 0, processing: 0, completed: 0, closed: 0 })
 
 const searchForm = reactive({
   title: '',
@@ -203,9 +208,20 @@ const fetchTypes = async () => {
   }
 }
 
+// 获取工单统计
+const fetchStats = async () => {
+  try {
+    const res = await getTicketStats()
+    stats.value = res.data || { pending: 0, processing: 0, completed: 0, closed: 0 }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 onMounted(() => {
   fetchList()
   fetchTypes()
+  fetchStats()
 })
 
 const handleTabChange = () => {

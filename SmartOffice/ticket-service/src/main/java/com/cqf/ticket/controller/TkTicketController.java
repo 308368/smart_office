@@ -2,6 +2,7 @@ package com.cqf.ticket.controller;
 
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cqf.api.client.AuthClient;
@@ -14,6 +15,7 @@ import com.cqf.ticket.model.dto.TicketHandleDTO;
 import com.cqf.ticket.model.dto.TicketQueryParam;
 import com.cqf.ticket.model.dto.TicketTransfer;
 import com.cqf.ticket.model.po.TkTicket;
+import com.cqf.common.domain.vo.TicketPendingVo;
 import com.cqf.ticket.model.vo.TicketTypeVo;
 import com.cqf.ticket.model.vo.TkTicketDetailVo;
 import com.cqf.ticket.model.vo.TkTicketVo;
@@ -23,6 +25,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -145,5 +148,35 @@ public class TkTicketController {
                 .update();
         return Result.success();
     }
+    @GetMapping("/pending")
+    public Result<PageResult<TicketPendingVo>> pending(Integer current,Integer size) {
+        Page<TkTicket> tkTicketPage = tkTicketService.lambdaQuery()
+                .eq(TkTicket::getStatus, TicketEnum.WAIT_HANDLE.getStatus())
+                .page(new Page<>(current, size));
+        PageResult<TicketPendingVo> ticketPendingVoPageResult = new PageResult<>();
+        ticketPendingVoPageResult.setCurrent((int) tkTicketPage.getCurrent());
+        ticketPendingVoPageResult.setSize((int) tkTicketPage.getSize());
+        ticketPendingVoPageResult.setTotal((int) tkTicketPage.getTotal());
+        ticketPendingVoPageResult.setPages((int) tkTicketPage.getPages());
+        List<TkTicket> records = tkTicketPage.getRecords();
+        List<TicketPendingVo> list = records.stream().map(tkTicket -> {
+            TicketPendingVo ticketPendingVo = new TicketPendingVo();
+            ticketPendingVo.setId(tkTicket.getId());
+            ticketPendingVo.setTitle(tkTicket.getTitle());
+            ticketPendingVo.setTypeName(tkTicket.getCategory());
+            ticketPendingVo.setPriority(tkTicket.getPriority());
+            ticketPendingVo.setCreateTime(tkTicket.getCreateTime());
+            return ticketPendingVo;
+
+        }).toList();
+        ticketPendingVoPageResult.setRecords(list);
+        return Result.success(ticketPendingVoPageResult);
+    }
+    @GetMapping("/stats")
+    public Result<Map<String, Long>> getStats() {
+        Map<String, Long> stats=tkTicketService.getstats();
+        return Result.success(stats);
+    }
+
 
 }

@@ -214,7 +214,10 @@ const formatTime = (timeStr: string) => {
 const loadSessionList = async () => {
   try {
     const res = await getChatHistory()
-    sessionList.value = res.data || []
+    const list = res.data || []
+    // 按更新时间倒序，新的在上面
+    list.sort((a: Session, b: Session) => new Date(b.updateTime).getTime() - new Date(a.updateTime).getTime())
+    sessionList.value = list
   } catch (error) {
     console.error(error)
   }

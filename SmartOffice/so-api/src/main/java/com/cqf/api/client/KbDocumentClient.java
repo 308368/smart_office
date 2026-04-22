@@ -20,4 +20,6 @@ public interface KbDocumentClient {
     List<DocumentVo> userDoc(@PathVariable("isOwe") Integer isOwe);
     @PostMapping("/knowledge/kb/chunk/batch")
     Result saveBatch(@RequestBody ChunkSaveRequest request);
+    @GetMapping("/knowledge/kb/total")
+    Long total();
 }

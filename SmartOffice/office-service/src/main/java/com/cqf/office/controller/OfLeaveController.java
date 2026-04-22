@@ -143,5 +143,11 @@ public class OfLeaveController {
         OfLeave ofLeave = leaveService.getById(id);
         return Result.success(ofLeave);
     }
+    @GetMapping("/pendingLeave")
+    public Long pendingLeave(){
+        return leaveService.lambdaQuery()
+                .eq(OfLeave::getStatus, LeaveEnum.PENDING.getCode())
+                .count();
+    }
 
 }

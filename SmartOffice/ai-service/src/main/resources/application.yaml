@@ -7,5 +7,5 @@ so:
 
 logging:
   level:
-    com.cqf.knowledge.mapper: debug
+    com.cqf.ai.mapper: debug
 

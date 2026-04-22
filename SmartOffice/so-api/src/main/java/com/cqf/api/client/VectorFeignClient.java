@@ -5,6 +5,7 @@ import com.cqf.api.config.DefaultFeignConfig;
 import com.cqf.common.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -13,4 +14,6 @@ import java.util.List;
 public interface VectorFeignClient {
     @DeleteMapping("/ai/vector/delete")
     Result deleteVectors(@RequestParam List<String> vectorIds);
+    @GetMapping("/ai/chat/count")
+    Long count();
 }

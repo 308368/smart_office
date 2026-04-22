@@ -31,9 +31,9 @@
           <el-descriptions-item label="优先级">{{ getPriorityText(ticketInfo.priority) }}</el-descriptions-item>
           <el-descriptions-item label="状态">{{ getStatusText(ticketInfo.status) }}</el-descriptions-item>
           <el-descriptions-item label="创建人">{{ ticketInfo.submitterName }} ({{ ticketInfo.submitterDept }})</el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ ticketInfo.createTime }}</el-descriptions-item>
+          <el-descriptions-item label="创建时间">{{ formatDateTime(ticketInfo.createTime) }}</el-descriptions-item>
           <el-descriptions-item label="处理人">{{ ticketInfo.handlerName || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="完成时间">{{ ticketInfo.resolveTime || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="完成时间">{{ formatDateTime(ticketInfo.resolveTime) || '-' }}</el-descriptions-item>
         </el-descriptions>
 
         <div class="content-section">
@@ -68,7 +68,7 @@
             <div class="flow-content">
               <div class="flow-header">
                 <span class="flow-action">{{ flow.action }}</span>
-                <span class="flow-time">{{ flow.createTime }}</span>
+                <span class="flow-time">{{ formatDateTime(flow.createTime) }}</span>
               </div>
               <div class="flow-user">{{ flow.operatorName }}</div>
               <div class="flow-desc" v-if="flow.content">{{ flow.content }}</div>
@@ -83,7 +83,7 @@
             <div class="reply-item" v-for="reply in ticketInfo.replies" :key="reply.id">
               <div class="reply-user">{{ reply.userName }}</div>
               <div class="reply-content">{{ reply.content }}</div>
-              <div class="reply-time">{{ reply.createTime }}</div>
+              <div class="reply-time">{{ formatDateTime(reply.createTime) }}</div>
             </div>
           </div>
           <div class="reply-input">
@@ -140,6 +140,7 @@ import { Document, ArrowLeft } from '@element-plus/icons-vue'
 import { getTicketDetail, handleTicket, transferTicket, resolveTicket, replyTicket, closeTicket } from '@/api/ticket'
 import { getUserList } from '@/api/user'
 import { useUserStore } from '@/stores/user'
+import { formatDateTime } from '@/utils/format'
 
 const route = useRoute()
 const id = Number(route.params.id)

@@ -40,6 +40,11 @@ export const getTicketTypeList = () => {
   return request.get('/office/ticket/type/list')
 }
 
+// 工单统计
+export const getTicketStats = () => {
+  return request.get('/office/ticket/stats')
+}
+
 // 回复工单
 export const replyTicket = (id: number, data: { content: string }) => {
   return request.post(`/office/ticket/${id}/reply`, data)

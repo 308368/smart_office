@@ -29,6 +29,13 @@ public class KbDocumentClientFactory implements FallbackFactory<KbDocumentClient
                 log.error("saveBatch error:{}", cause.getMessage());
                 return Result.error("知识库服务异常");
             }
+
+            @Override
+            public Long total() {
+                log.info("知识库服务异常{}",cause.getMessage());
+                log.error("total error:{}", cause.getMessage());
+                return 0L;
+            }
         };
     }
 }

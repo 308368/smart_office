@@ -96,6 +96,18 @@ export const mockData: Record<string, any> = {
     }
   },
 
+  // 工单统计
+  'GET|/api/office/ticket/stats': {
+    code: 200,
+    msg: 'success',
+    data: {
+      pending: 5,
+      processing: 3,
+      completed: 45,
+      closed: 12
+    }
+  },
+
   // 工单类型
   'GET|/api/office/ticket/type/list': {
     code: 200,
@@ -301,11 +313,74 @@ export const mockData: Record<string, any> = {
     ]
   },
 
+  'GET|/api/office/notice/unreadCount': {
+    code: 200,
+    msg: 'success',
+    data: 5
+  },
+
   // 未读消息数
   'GET|/api/office/message/unreadCount': {
     code: 200,
     msg: 'success',
     data: 3
+  },
+
+  // ==================== Dashboard 首页接口 ====================
+
+  // 首页统计数据
+  'GET|/api/dashboard/stats': {
+    code: 200,
+    msg: 'success',
+    data: {
+      docCount: 128,
+      pendingTicket: 5,
+      pendingLeave: 3,
+      chatCount: 156
+    }
+  },
+
+  // AI对话统计（最近7天）
+  'GET|/api/ai/chat/stats': {
+    code: 200,
+    msg: 'success',
+    data: [
+      { date: '2026-04-15', count: 20 },
+      { date: '2026-04-16', count: 35 },
+      { date: '2026-04-17', count: 45 },
+      { date: '2026-04-18', count: 60 },
+      { date: '2026-04-19', count: 40 },
+      { date: '2026-04-20', count: 55 },
+      { date: '2026-04-21', count: 70 }
+    ]
+  },
+
+  // 待处理工单
+  'GET|/api/office/ticket/pending': {
+    code: 200,
+    msg: 'success',
+    data: {
+      records: [
+        { id: 1, title: '打印机故障', typeName: 'IT支持', priority: 1, createTime: '2026-04-21 10:30:00' },
+        { id: 2, title: '网络无法连接', typeName: 'IT支持', priority: 1, createTime: '2026-04-21 09:45:00' },
+        { id: 3, title: '申请年假', typeName: '人事', priority: 2, createTime: '2026-04-20 14:30:00' }
+      ],
+      total: 5,
+      current: 1,
+      size: 5,
+      pages: 1
+    }
+  },
+
+  // 首页公告
+  'GET|/api/office/notice/home': {
+    code: 200,
+    msg: 'success',
+    data: [
+      { id: 1, title: '关于2024年清明节放假安排的通知', publisherName: '人事行政部', publishTime: '2026-04-20', isRead: false },
+      { id: 2, title: '2024年度员工体检通知', publisherName: '人事行政部', publishTime: '2026-04-18', isRead: true },
+      { id: 3, title: '系统升级维护通知', publisherName: '技术部', publishTime: '2026-04-15', isRead: true }
+    ]
   }
 }
 

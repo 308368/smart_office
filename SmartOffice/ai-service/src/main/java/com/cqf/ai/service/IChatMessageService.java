@@ -3,6 +3,7 @@ package com.cqf.ai.service;
 import com.cqf.ai.model.dto.ChatRequest;
 import com.cqf.ai.model.po.ChatMessage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.cqf.ai.model.vo.ChatCount;
 import com.cqf.ai.model.vo.MessageVO;
 import org.springframework.ai.chat.messages.Message;
 import reactor.core.publisher.Flux;
@@ -24,4 +25,6 @@ public interface IChatMessageService extends IService<ChatMessage> {
     List<Message> getChatHistory(Long sessionId);
 
     List<MessageVO> getMessage(Long sessionId);
+
+    List<ChatCount> chatCount();
 }

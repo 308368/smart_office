@@ -23,7 +23,7 @@
         <el-table-column prop="reason" label="请假原因" min-width="120" show-overflow-tooltip />
         <el-table-column prop="createTime" label="申请时间" width="160">
           <template #default="{ row }">
-            {{ formatDate(row.createTime) }}
+            {{ formatDateTime(row.createTime) }}
           </template>
         </el-table-column>
         <el-table-column label="操作" width="80" fixed="right">
@@ -82,6 +82,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
 import { getPendingLeaveList, approveLeave } from '@/api/office'
+import { formatDateTime } from '@/utils/format'
 
 const loading = ref(false)
 const leaveList = ref<any[]>([])
@@ -98,13 +99,6 @@ const form = reactive({
   approve: true,
   remark: ''
 })
-
-// 格式化日期
-const formatDate = (dateStr: string) => {
-  if (!dateStr) return ''
-  const d = new Date(dateStr)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-}
 
 const fetchList = async () => {
   try {
