@@ -34,7 +34,7 @@ public class CommonConfiguration {
     @Bean
     public ChatClient chatClient(OpenAiChatModel chatModel, ChatMemory chatMemory) {
         return ChatClient.builder(chatModel)
-                .defaultSystem("你是公司的智能办公助手，可以回答关于公司制度、流程等问题。如果不确定答案，请如实说明。")
+                .defaultSystem("你是公司的智能办公助手，可以回答关于公司制度、流程等问题。使用纯文本格式回答，不要使用markdown。如果不确定答案，请如实说明。")
                 .defaultAdvisors(
                         new SimpleLoggerAdvisor(),
                         MessageChatMemoryAdvisor.builder(chatMemory).build()
@@ -45,7 +45,7 @@ public class CommonConfiguration {
     public ChatClient pdfChatClient(OpenAiChatModel model, ChatMemory chatMemory, VectorStore vectorStore) {
         return ChatClient
                 .builder(model)
-                .defaultSystem("请根据上下文回答问题,遇到上下文没有的问题,请说明\\\"该信息不在知识库中\\\"。")
+                .defaultSystem("请根据上下文回答问题，使用纯文本格式回答，不要使用markdown。遇到上下文没有的问题,请说明\"该信息不在知识库中\"。")
                 .defaultAdvisors(
                         new SimpleLoggerAdvisor(),//添加日志
                         MessageChatMemoryAdvisor.builder(chatMemory).build(),//添加会话存储记录

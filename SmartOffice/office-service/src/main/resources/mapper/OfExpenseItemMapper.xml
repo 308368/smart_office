@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cqf.office.mapper.OfExpenseItemMapper">
+
+    <insert id="savebatch">
+        insert into of_expense_item (expense_id, item_type, amount, description, expense_date, receipt_url) values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.expenseId}, #{item.itemType}, #{item.amount}, #{item.description}, #{item.expenseDate}, #{item.receiptUrl})
+        </foreach>
+    </insert>
+</mapper>

@@ -46,6 +46,16 @@
           <span>请假审批</span>
         </el-menu-item>
 
+        <el-menu-item index="/expense">
+          <el-icon><Money /></el-icon>
+          <span>费用报销</span>
+        </el-menu-item>
+
+        <el-menu-item index="/expense/approve" v-if="hasPermission('expense:approve')">
+          <el-icon><Coin /></el-icon>
+          <span>报销审批</span>
+        </el-menu-item>
+
         <el-menu-item index="/notice" v-if="hasPermission('notice')">
           <el-icon><Bell /></el-icon>
           <span>通知公告</span>

@@ -72,6 +72,18 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '通知公告', icon: 'Bell' }
       },
       {
+        path: 'expense',
+        name: 'Expense',
+        component: () => import('@/views/expense/index.vue'),
+        meta: { title: '费用报销', icon: 'Money' }
+      },
+      {
+        path: 'expense/approve',
+        name: 'ExpenseApprove',
+        component: () => import('@/views/expense/approve.vue'),
+        meta: { title: '报销审批', icon: 'Coin', permission: 'expense:approve' }
+      },
+      {
         path: 'system/user',
         name: 'SystemUser',
         component: () => import('@/views/system/user.vue'),
