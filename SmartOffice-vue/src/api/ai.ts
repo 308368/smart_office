@@ -34,3 +34,37 @@ export const createChatSession = () => {
 export const getAIKnowledgeList = (isOwe: number) => {
   return request.get(`/ai/kb/list/${isOwe}`)
 }
+
+// ============ 提示词管理 API ============
+
+// 获取提示词列表
+export const getPromptList = () => {
+  return request.get('/ai/prompt/list')
+}
+
+// 创建提示词
+export const createPrompt = (data: {
+  name: string
+  description?: string
+  prompt: string
+  category?: string
+  isPublic?: number
+}) => {
+  return request.post('/ai/prompt/create', data)
+}
+
+// 修改提示词
+export const updatePrompt = (id: number, data: {
+  name: string
+  description?: string
+  prompt: string
+  category?: string
+  isPublic?: number
+}) => {
+  return request.put(`/ai/prompt/${id}`, data)
+}
+
+// 删除提示词
+export const deletePrompt = (id: number) => {
+  return request.delete(`/ai/prompt/${id}`)
+}

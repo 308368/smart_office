@@ -45,7 +45,7 @@ public class CommonConfiguration {
     public ChatClient pdfChatClient(OpenAiChatModel model, ChatMemory chatMemory, VectorStore vectorStore) {
         return ChatClient
                 .builder(model)
-                .defaultSystem("请根据上下文回答问题，使用纯文本格式回答，不要使用markdown。遇到上下文没有的问题,请说明\"该信息不在知识库中\"。")
+//                .defaultSystem("请根据上下文回答问题，使用纯文本格式回答，不要使用markdown。遇到上下文没有的问题,请说明\"该信息不在知识库中\"。")
                 .defaultAdvisors(
                         new SimpleLoggerAdvisor(),//添加日志
                         MessageChatMemoryAdvisor.builder(chatMemory).build(),//添加会话存储记录

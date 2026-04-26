@@ -1,7 +1,9 @@
 package com.cqf.ai.service;
 
+import com.cqf.ai.model.dto.AddPromptDTO;
 import com.cqf.ai.model.po.ChatPrompt;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.cqf.ai.model.vo.ChatPromptVo;
 
 /**
  * <p>
@@ -13,4 +15,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IChatPromptService extends IService<ChatPrompt> {
 
+    ChatPromptVo addPrompt(AddPromptDTO dto, Long userId);
+
+    void updatePrompt(Long id, AddPromptDTO dto);
 }

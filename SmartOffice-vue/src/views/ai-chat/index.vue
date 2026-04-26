@@ -114,12 +114,25 @@
           :disabled="loading"
           @keydown.enter.exact.prevent="handleSend"
         />
-        <el-button type="primary" :loading="loading" @click="handleSend">
-          <el-icon><Promotion /></el-icon>
-          发送
-        </el-button>
+        <div class="input-actions">
+          <el-tag v-if="currentPrompt" closable type="success" size="large" @close="currentPrompt = null">
+            {{ currentPrompt.name }}
+          </el-tag>
+          <el-tooltip content="提示词管理">
+            <el-button link type="primary" @click="promptManagerRef?.open(currentPrompt ?? undefined)">
+              <el-icon><Setting /></el-icon>
+            </el-button>
+          </el-tooltip>
+          <el-button type="primary" :loading="loading" @click="handleSend">
+            <el-icon><Promotion /></el-icon>
+            发送
+          </el-button>
+        </div>
       </div>
     </div>
+
+    <!-- 提示词管理弹窗 -->
+    <PromptManagerDialog ref="promptManagerRef" @select="handlePromptSelect" />
   </div>
 </template>
 
@@ -129,9 +142,22 @@ import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getAIKnowledgeList, getChatHistory, getChatMessages, deleteChatHistory, createChatSession } from '@/api/ai'
 import { useUserStore } from '@/stores/user'
+import PromptManagerDialog from './PromptManagerDialog.vue'
+import { Setting } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const userStore = useUserStore()
+
+interface Prompt {
+  id: number
+  name: string
+  description?: string
+  prompt: string
+  category?: string
+  isPublic: number
+  createBy: number
+  createTime: string
+}
 
 interface DocItem {
   docId: number
@@ -178,6 +204,10 @@ const chatContainer = ref<HTMLElement>()
 // 会话相关
 const sessionList = ref<Session[]>([])
 const currentSessionId = ref<number | null>(null)
+
+// 提示词相关
+const currentPrompt = ref<Prompt | null>(null)
+const promptManagerRef = ref<InstanceType<typeof PromptManagerDialog>>()
 
 // 按知识库分组
 const groupedKbList = computed(() => {
@@ -320,6 +350,11 @@ const handleClear = () => {
   selectedDocIds.value = []
 }
 
+// 选择提示词
+const handlePromptSelect = (prompt: Prompt | null) => {
+  currentPrompt.value = prompt
+}
+
 // 发送消息（流式）
 const handleSend = async () => {
   if (!inputText.value.trim()) return
@@ -356,7 +391,8 @@ const handleSend = async () => {
       body: JSON.stringify({
         docIds: selectedDocIds.value,
         question,
-        sessionId: currentSessionId.value
+        sessionId: currentSessionId.value,
+        promptId: currentPrompt.value?.id || null
       })
     })
 
@@ -530,9 +566,7 @@ const formatContent = (content: string) => {
   }
 
   .chat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: block;
     padding: 16px 20px;
     border-bottom: 1px solid #E5E7EB;
 
@@ -540,6 +574,31 @@ const formatContent = (content: string) => {
       font-size: 18px;
       font-weight: 600;
       color: #1F2937;
+      margin-bottom: 12px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+
+      .current-prompt {
+        font-size: 14px;
+        color: #10B981;
+      }
+    }
+
+    .prompt-selector {
+      margin-bottom: 12px;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+
+      .no-prompt {
+        color: #9CA3AF;
+        font-size: 13px;
+      }
     }
 
     .kb-selector {
@@ -693,9 +752,16 @@ const formatContent = (content: string) => {
     padding: 16px 20px;
     border-top: 1px solid #E5E7EB;
     background: #F9FAFB;
+    align-items: center;
 
     .el-textarea {
       flex: 1;
+    }
+
+    .input-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .el-button {
