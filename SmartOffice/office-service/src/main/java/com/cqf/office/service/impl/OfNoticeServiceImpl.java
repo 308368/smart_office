@@ -3,6 +3,7 @@ package com.cqf.office.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.cqf.common.domain.po.SysUser;
+import com.cqf.common.service.NoticeWebSocketService;
 import com.cqf.office.enums.NoticeStatusEnum;
 import com.cqf.office.mapper.OfNoticeReadMapper;
 import com.cqf.office.model.dto.AUNoticeDTO;
@@ -22,7 +23,6 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * <p>

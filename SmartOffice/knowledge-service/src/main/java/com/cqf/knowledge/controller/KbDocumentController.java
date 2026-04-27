@@ -62,7 +62,8 @@ public class KbDocumentController {
     @PostMapping(value = "/{kbId}/doc/upload",consumes = "multipart/form-data")
     @PreAuthorize("hasAuthority('knowledge:upload')")
     public Result<DocumentVo> upload(@PathVariable("kbId") Long kbId, @RequestParam("file") MultipartFile file) {
-        DocumentVo documentVo=kbDocumentService.upload(kbId,file);
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        DocumentVo documentVo=kbDocumentService.upload(kbId,file,username);
         return Result.success(documentVo);
     }
     @DeleteMapping("/{kbId}/doc/{docId}")

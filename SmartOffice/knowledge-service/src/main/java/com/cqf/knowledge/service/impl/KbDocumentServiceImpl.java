@@ -40,6 +40,7 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -70,7 +71,7 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
 
     @Override
     @GlobalTransactional
-    public DocumentVo upload(Long kbId, MultipartFile file) {
+    public DocumentVo upload(Long kbId, MultipartFile file,String username) {
         //获取文件名称
         String fileName = file.getOriginalFilename();
         //获取扩展名
@@ -93,7 +94,10 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
                 objectName,
                 bucketFiles
         );
-        rabbitMqHelper.sendMessage(MQConstants.EXCHANGE_NAME,MQConstants.DOCUMENT_KEY,documentVo.getId());
+        HashMap<String, Object> msg = new HashMap<>();
+        msg.put("documentId",documentVo.getId());
+        msg.put("username",username);
+        rabbitMqHelper.sendMessage(MQConstants.EXCHANGE_NAME,MQConstants.DOCUMENT_KEY,msg);
         return documentVo;
     }
     @Override

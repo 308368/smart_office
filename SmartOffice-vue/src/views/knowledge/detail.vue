@@ -109,10 +109,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getKnowledgeDetail, getDocumentList, deleteDocument } from '@/api/knowledge'
+import { addDocumentListener } from '@/utils/websocket'
 
 const route = useRoute()
 const router = useRouter()
@@ -152,7 +153,23 @@ const fetchDocList = async () => {
 onMounted(() => {
   fetchKBDetail()
   fetchDocList()
+
+  // 监听文档分块完成消息
+  removeDocumentListener = addDocumentListener((data) => {
+    if (data.kbId === kbId) {
+      // 如果是当前知识库的文档，刷新列表
+      fetchDocList()
+    }
+  })
 })
+
+onUnmounted(() => {
+  if (removeDocumentListener) {
+    removeDocumentListener()
+  }
+})
+
+let removeDocumentListener = () => {}
 
 const selectDoc = (doc: any) => {
   selectedDoc.value = doc

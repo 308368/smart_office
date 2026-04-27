@@ -17,7 +17,7 @@ import java.io.InputStream;
  */
 public interface IKbDocumentService extends IService<KbDocument> {
 
-    DocumentVo upload(Long kbId, MultipartFile file);
+    DocumentVo upload(Long kbId, MultipartFile file,String username);
 
     DocumentVo addMediaFilesToDb(Long kbId,Long fileSize,String fileName,String extension,String objectName,String bucket);
 

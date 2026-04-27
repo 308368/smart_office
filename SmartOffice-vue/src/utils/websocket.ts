@@ -10,7 +10,8 @@
  * 1. 创建 SockJS 连接到 /ws 端点（后端提供）
  * 2. 通过 Stomp.over(socket) 创建 STOMP 客户端
  * 3. 连接成功后，订阅 /topic/notice 主题（接收公告推送）
- * 4. 收到消息后，解析并通过 Element Plus Notification 弹窗展示
+ * 4. 订阅 /user/queue/document 个人文档通知主题
+ * 5. 收到消息后，解析并通过 Element Plus Notification 弹窗展示
  */
 
 import SockJS from 'sockjs-client'
@@ -20,6 +21,38 @@ import { ElNotification } from 'element-plus'
 // STOMP 客户端实例，用于维护 WebSocket 连接
 let stompClient: any = null
 
+// 挂到 window 方便调试
+window.stompClient = stompClient
+
+// 导出用于调试
+export const getStompClient = () => stompClient
+
+// 文档消息监听器列表
+type DocumentMessageCallback = (data: {
+  type: string
+  kbId: number
+  docId: number
+  docTitle: string
+  chunkCount: number
+  timestamp: number
+}) => void
+const documentListeners: DocumentMessageCallback[] = []
+
+/**
+ * 添加文档消息监听器
+ * @param callback 收到文档消息时的回调函数
+ * @returns 取消监听的函数
+ */
+export const addDocumentListener = (callback: DocumentMessageCallback): (() => void) => {
+  documentListeners.push(callback)
+  return () => {
+    const index = documentListeners.indexOf(callback)
+    if (index > -1) {
+      documentListeners.splice(index, 1)
+    }
+  }
+}
+
 /**
  * 建立 WebSocket 连接
  *
@@ -28,7 +61,8 @@ let stompClient: any = null
  *
  * 连接成功后会：
  * 1. 订阅 /topic/notice 公告通知主题
- * 2. 当后端推送新公告时，自动弹窗显示
+ * 2. 订阅 /user/queue/document 个人文档通知主题
+ * 3. 当后端推送新公告时，自动弹窗显示
  */
 export const connectWebSocket = () => {
   // 1. 创建 SockJS 实例，连接后端的 /ws 端点
@@ -45,12 +79,19 @@ export const connectWebSocket = () => {
 
   // 4. 建立连接
   stompClient.connect(
-    {},  // 连接头，这里为空
+    { token: localStorage.getItem('token') },  // 传递 token
     () => {
-      // 5. 连接成功后，订阅公告通知主题
+      console.log('=== WebSocket 连接成功 ===')
+      window.stompClient = stompClient  // 挂到 window 方便调试
+
+      // 5. 连接成功后，订阅公告通知主题（广播，所有人可见）
       //    /topic/ 是 STOMP 的广播地址前缀
       //    /topic/notice 是我们自定义的公告通知主题
       stompClient.subscribe('/topic/notice', (message: any) => {
+        console.log('=== 收到公告消息 ===')
+        console.log('原始消息:', message)
+        console.log('body:', message.body)
+        console.log('headers:', message.headers)
         // 6. 收到消息时，解析消息体（JSON 格式）
         const data = JSON.parse(message.body)
 
@@ -67,6 +108,32 @@ export const connectWebSocket = () => {
           position: 'top-right',
           duration: 5000
         })
+      })
+
+      // 8. 订阅个人文档通知主题（点对点，只有自己可见）
+      //    /user/ 是 STOMP 的用户专属地址前缀
+      //    /queue/document 是文档通知队列
+      //    Spring 会自动将消息路由到对应用户的队列
+      const docSub = stompClient.subscribe('/user/queue/document', (message: any) => {
+        console.log('=== WebSocket 收到文档消息 ===')
+        console.log('原始消息:', message)
+        console.log('body:', message.body)
+        const data = JSON.parse(message.body)
+
+        // 根据消息类型处理
+        if (data.type === 'chunk_complete') {
+          // 文档分块完成通知
+          ElNotification({
+            title: '📄 文档处理完成',
+            message: `"${data.docTitle}" 已完成分块，共 ${data.chunkCount} 个片段`,
+            type: 'success',
+            position: 'top-right',
+            duration: 5000
+          })
+
+          // 通知所有监听器
+          documentListeners.forEach(callback => callback(data))
+        }
       })
     },
     (error: any) => {

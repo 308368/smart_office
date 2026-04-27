@@ -9,6 +9,8 @@ public class ChunkSaveRequest {
 
     private List<ChunkItem> chunks;
 
+    private String username;
+
     @Data
     public static class ChunkItem {
         private Long documentId;

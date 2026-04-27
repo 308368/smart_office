@@ -1,5 +1,6 @@
 package com.cqf.knowledge.service.impl;
 
+import com.cqf.api.client.OfficeClient;
 import com.cqf.common.domain.dto.ChunkSaveRequest;
 import com.cqf.knowledge.model.po.KbDocument;
 import com.cqf.knowledge.model.po.KbDocumentChunk;
@@ -7,14 +8,10 @@ import com.cqf.knowledge.mapper.KbDocumentChunkMapper;
 import com.cqf.knowledge.service.IKbDocumentChunkService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cqf.knowledge.service.IKbDocumentService;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,6 +28,7 @@ import java.util.List;
 public class KbDocumentChunkServiceImpl extends ServiceImpl<KbDocumentChunkMapper, KbDocumentChunk> implements IKbDocumentChunkService {
     private final KbDocumentChunkMapper kbDocumentChunkMapper;
     private final IKbDocumentService kbDocumentService;
+    private final OfficeClient webSocketFeignClient;
 
     @Override
     public void uploadChunk(ChunkSaveRequest request) {
@@ -50,6 +48,9 @@ public class KbDocumentChunkServiceImpl extends ServiceImpl<KbDocumentChunkMappe
         document.setChunkCount(chunks.size());
         boolean b1 = kbDocumentService.updateById(document);
         if(!b1)throw new RuntimeException("更新文档状态失败");
+        //向前端推送解析成功消息 - 通过Feign调用office-service发送WebSocket消息
+        String username = request.getUsername();
+        webSocketFeignClient.sendChunkComplete(document.getKbId(), document.getId(), document.getTitle(), chunks.size(), username);
     }
 
 

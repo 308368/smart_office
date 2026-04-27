@@ -14,4 +14,6 @@ public class DocumentChunkMsg {
     private String fileUrl;
 
     private String fileName;
+
+    private String username;
 }

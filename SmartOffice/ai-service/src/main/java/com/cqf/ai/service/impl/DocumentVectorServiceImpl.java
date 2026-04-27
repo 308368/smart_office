@@ -1,9 +1,11 @@
 package com.cqf.ai.service.impl;
 
 import com.cqf.ai.service.IDocumentVectorService;
+import com.cqf.api.client.AuthClient;
 import com.cqf.api.client.KbDocumentClient;
 import com.cqf.common.domain.dto.ChunkSaveRequest;
 import com.cqf.common.domain.dto.DocumentChunkMsg;
+import com.cqf.common.service.NoticeWebSocketService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
@@ -13,6 +15,8 @@ import org.springframework.ai.reader.pdf.config.PdfDocumentReaderConfig;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.net.MalformedURLException;
@@ -25,6 +29,7 @@ import java.util.List;
 public class DocumentVectorServiceImpl implements IDocumentVectorService {
     private final KbDocumentClient kbChunkFeignClient;
     private final VectorStore vectorStore;
+
 
     static {
         System.setProperty("pdfbox.fontcache", "false");
@@ -49,8 +54,17 @@ public class DocumentVectorServiceImpl implements IDocumentVectorService {
             //读取PDF文档，拆分为Document
             List<Document> documents = reader.read();
             documents.forEach(document -> document.getMetadata().put("doc_id", msg.getDocumentId()));
-            //写入向量库
-            vectorStore.add(documents);
+            // 3. 分批写入向量库（DashScope 限制每批最多 10 个文档）
+            int batchSize = 10;
+            for (int i = 0; i < documents.size(); i += batchSize) {
+                int endIndex = Math.min(i + batchSize, documents.size());
+                List<Document> batch = documents.subList(i, endIndex);
+
+                log.info("正在处理第 {}-{} 页，共 {} 页", i + 1, endIndex, documents.size());
+                vectorStore.add(batch);
+
+                log.info("第 {}-{} 页向量存储成功", i + 1, endIndex);
+            }
 
             // 4. 保存 chunk 记录到 knowledge-service
             List<ChunkSaveRequest.ChunkItem> chunkItems = new ArrayList<>();
@@ -65,6 +79,7 @@ public class DocumentVectorServiceImpl implements IDocumentVectorService {
             }
 
             ChunkSaveRequest request = new ChunkSaveRequest();
+            request.setUsername(msg.getUsername());
             request.setChunks(chunkItems);
             kbChunkFeignClient.saveBatch(request);
 

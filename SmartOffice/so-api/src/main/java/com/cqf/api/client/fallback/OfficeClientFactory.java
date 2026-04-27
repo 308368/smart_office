@@ -17,6 +17,11 @@ public class OfficeClientFactory implements FallbackFactory<OfficeClient> {
                 log.error("pendingLeave error:{}", cause.getMessage());
                 return 0L;
             }
+
+            @Override
+            public void sendChunkComplete(Long kbId, Long docId, String docTitle, Integer chunkCount, String username) {
+
+            }
         };
     }
 }

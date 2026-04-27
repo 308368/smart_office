@@ -2,6 +2,7 @@ package com.cqf.knowledge.listener;
 
 import com.cqf.common.constants.MQConstants;
 import com.cqf.common.domain.dto.DocumentChunkMsg;
+import com.cqf.common.service.NoticeWebSocketService;
 import com.cqf.knowledge.model.po.KbDocument;
 import com.cqf.knowledge.service.IKbDocumentService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 
 @Slf4j
 @Component
@@ -38,7 +40,9 @@ public class HandleDocumentListener {
             exchange = @Exchange(value = MQConstants.EXCHANGE_NAME),
             key = MQConstants.DOCUMENT_KEY
     ))
-    public void listenDocumentTask(Long id) throws TikaException {
+    public void listenDocumentTask(HashMap<String, Object> map) throws TikaException {
+        Object id = map.get("documentId");
+        Object username = map.get("username");
         KbDocument document = kbDocumentService.lambdaQuery().eq(KbDocument::getId, id).one();
         if (document == null) {
             return;
@@ -64,6 +68,7 @@ public class HandleDocumentListener {
             msg.setDocumentId(document.getId());
             msg.setFileUrl(fileUrl);
             msg.setFileName(document.getTitle());
+            msg.setUsername(username.toString());
             rabbitTemplate.convertAndSend(MQConstants.EXCHANGE_NAME_AI,MQConstants.DOCUMENT_KEY_AI,msg);
         } catch (IOException e) {
             log.error("解析文档内容失败，文档ID：{}", id, e);
@@ -81,7 +86,6 @@ public class HandleDocumentListener {
             }
         }
 
-        //TODO:向前端推送解析成功消息
 
     }
 
