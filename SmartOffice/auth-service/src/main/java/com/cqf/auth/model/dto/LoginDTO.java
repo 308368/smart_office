@@ -20,5 +20,5 @@ public class LoginDTO {
     /**
      * 登录方式
      */
-    private String loginType="password";
+    private String authType;
 }

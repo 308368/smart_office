@@ -1,0 +1,1 @@
+import{aq as e,r as o}from"./index-Uj6x2Cux.js";import{k as n}from"./office-DzteGU4k.js";const u=e("notice",()=>{const t=o(0);return{unreadCount:t,fetchUnreadCount:async()=>{try{const r=await n();t.value=r.data}catch(r){console.error(r)}}}});export{u};

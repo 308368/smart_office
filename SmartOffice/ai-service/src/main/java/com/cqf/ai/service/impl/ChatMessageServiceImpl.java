@@ -177,6 +177,7 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
         chatMessage.setModel(MODEL);
         chatMessage.setTokens(tokens);
         chatMessage.setCostTime(costTime);
+        chatMessage.setCreateTime(LocalDateTime.now());
         chatMessageMapper.insert(chatMessage);
     }
 

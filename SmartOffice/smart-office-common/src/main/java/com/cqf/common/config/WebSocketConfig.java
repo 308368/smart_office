@@ -1,6 +1,7 @@
 package com.cqf.common.config;
 
 
+import com.cqf.common.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -27,7 +28,7 @@ import java.util.Collections;
 @ConditionalOnClass({EnableWebSocketMessageBroker.class, WebSocketMessageBrokerConfigurer.class})
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private String jwtSecret = "SmartOffice2026SecretKeyForJWT256Bit";
+//    private String jwtSecret = "SmartOffice2026SecretKeyForJWT256Bit";
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -52,13 +53,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     if (token != null && !token.isEmpty()) {
                         try {
                             // 将密钥字符串转换为 SecretKey
-                            SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+//                            SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
                             // 解析 token 获取用户名
-                            Claims claims = Jwts.parser()
+                            /*Claims claims = Jwts.parser()
                                     .verifyWith(key)
                                     .build()
                                     .parseSignedClaims(token)
-                                    .getPayload();
+                                    .getPayload();*/
+                            Claims claims = JwtUtil.parseToken(token);
                             String username = claims.getSubject();
                             System.out.println("=== WebSocket 解析用户: " + username);
 

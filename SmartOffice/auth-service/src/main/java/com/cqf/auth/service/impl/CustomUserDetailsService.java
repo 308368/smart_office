@@ -52,7 +52,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             log.info("认证请求不符合项目要求:{}", s);
             throw new RuntimeException("认证请求数据格式不对");
         }
-        String beanName = loginDto.getLoginType() + "_authservice";
+        String beanName = loginDto.getAuthType() + "_authservice";
         AuthService authService = applicationContext.getBean(beanName, AuthService.class);
         SysUser sysUser = authService.execute(loginDto);
 

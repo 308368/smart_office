@@ -15,6 +15,9 @@ spring:
         group: SmartOffice-project
         file-extension: yaml
         shared-configs:
+          - data-id: auth-service-dev.yaml
+            group: SmartOffice-project
+            refresh: true
           - data-id: shared-jdbc.yaml
             group: SmartOffice-common
             refresh: true

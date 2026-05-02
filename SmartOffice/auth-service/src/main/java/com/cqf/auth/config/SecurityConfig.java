@@ -64,7 +64,8 @@ public class SecurityConfig {
      */
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        // DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        DaoAuthenticationProviderCustom provider = new DaoAuthenticationProviderCustom();
         provider.setUserDetailsService(customUserDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
@@ -118,7 +119,7 @@ public class SecurityConfig {
                 // 配置请求授权
                 .authorizeHttpRequests(auth -> auth
                         // 登录接口放行
-                        .requestMatchers("/ucenter/login", "/ucenter/register").permitAll()
+                        .requestMatchers("/ucenter/login", "/ucenter/register","auth/wxLogin").permitAll()
                         // OPTIONS 请求放行（CORS预检）
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         // 其他请求需要认证
