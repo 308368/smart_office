@@ -11,6 +11,7 @@ import com.cqf.auth.model.po.SysUser;
 import com.cqf.auth.model.po.SysUserRole;
 import com.cqf.auth.service.AuthService;
 import com.cqf.auth.service.WxAuthService;
+import com.cqf.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,7 +65,7 @@ public class WxAuthServiceImpl implements AuthService, WxAuthService {
         //保存用户信息
         SysUser user=saveUser(userInfoMap);
         if (user==null){
-            throw new RuntimeException("用户信息保存失败");
+            throw new BusinessException("用户信息保存失败");
         }
         return user;
     }
@@ -73,9 +74,11 @@ public class WxAuthServiceImpl implements AuthService, WxAuthService {
         SysUser user = userMapper.selectOne(new LambdaQueryWrapper<SysUser>()
                 .eq(SysUser::getUsername, userInfoMap.get("openid")));
         if (user!=null){
+            log.info("用户已存在,直接返回:{}", user);
             return user;
         }
         //保存user表
+        log.info("保存用户信息:{}", userInfoMap);
         SysUser sysUser = new SysUser();
         sysUser.setUsername(userInfoMap.get("openid"));
         sysUser.setPassword(userInfoMap.get("openid"));

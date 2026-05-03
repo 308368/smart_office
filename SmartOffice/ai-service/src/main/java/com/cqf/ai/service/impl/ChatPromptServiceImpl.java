@@ -6,6 +6,7 @@ import com.cqf.ai.model.po.ChatPrompt;
 import com.cqf.ai.mapper.ChatPromptMapper;
 import com.cqf.ai.model.vo.ChatPromptVo;
 import com.cqf.ai.service.IChatPromptService;
+import com.cqf.common.exception.BusinessException;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -40,7 +41,7 @@ public class ChatPromptServiceImpl extends ServiceImpl<ChatPromptMapper, ChatPro
     @Override
     public void updatePrompt(Long id, AddPromptDTO dto) {
         ChatPrompt chatPrompt = chatPromptMapper.selectById(id);
-        if (chatPrompt == null)throw new RuntimeException("提示词不存在");
+        if (chatPrompt == null)throw new BusinessException("提示词不存在");
         BeanUtil.copyProperties(dto, chatPrompt);
         chatPromptMapper.updateById(chatPrompt);
     }

@@ -2,6 +2,7 @@ package com.cqf.knowledge.listener;
 
 import com.cqf.common.constants.MQConstants;
 import com.cqf.common.domain.dto.DocumentChunkMsg;
+import com.cqf.common.exception.BusinessException;
 import com.cqf.common.service.NoticeWebSocketService;
 import com.cqf.knowledge.model.po.KbDocument;
 import com.cqf.knowledge.service.IKbDocumentService;
@@ -75,7 +76,7 @@ public class HandleDocumentListener {
             document.setStatus(3);
             kbDocumentService.updateById(document);
             e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new BusinessException(500, e.getMessage(), e);
         }finally {
             if (inputStream != null) {
                 try {

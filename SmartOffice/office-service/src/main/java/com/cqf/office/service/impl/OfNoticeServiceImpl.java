@@ -13,6 +13,7 @@ import com.cqf.office.mapper.OfNoticeMapper;
 import com.cqf.office.model.po.OfNoticeRead;
 import com.cqf.office.model.vo.NoticeHomeVo;
 import com.cqf.office.service.IOfNoticeService;
+import com.cqf.common.exception.BusinessException;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -49,7 +50,7 @@ public class OfNoticeServiceImpl extends ServiceImpl<OfNoticeMapper, OfNotice> i
         ofNotice.setViewCount(ofNotice.getViewCount() + 1);
         int i = noticeMapper.updateById(ofNotice);
         if (i < 0) {
-            throw new RuntimeException("更新失败");
+            throw new BusinessException("更新失败");
         }
         //判断在阅读记录表中是否已经存在阅读记录
         OfNoticeRead ofNoticeRead = noticeReadMapper.selectOne(new LambdaQueryWrapper<OfNoticeRead>()
@@ -63,7 +64,7 @@ public class OfNoticeServiceImpl extends ServiceImpl<OfNoticeMapper, OfNotice> i
             NoticeRead.setReadTime(LocalDateTime.now());
             int insert = noticeReadMapper.insert(NoticeRead);
             if (insert < 0) {
-                throw new RuntimeException("插入失败");
+                throw new BusinessException("插入失败");
             }
         }
         return BeanUtil.copyProperties(ofNotice, NoticeDTO.class);
@@ -83,7 +84,7 @@ public class OfNoticeServiceImpl extends ServiceImpl<OfNoticeMapper, OfNotice> i
         }
         int insert = noticeMapper.insert(ofNotice);
         if (insert < 0) {
-            throw new RuntimeException("插入失败");
+            throw new BusinessException("插入失败");
         }
     }
 
@@ -92,7 +93,7 @@ public class OfNoticeServiceImpl extends ServiceImpl<OfNoticeMapper, OfNotice> i
         Long noticeDTOId = noticeDTO.getId();
         OfNotice ofNotice = noticeMapper.selectById(noticeDTOId);
         if (ofNotice == null) {
-            throw new RuntimeException("通知公告不存在");
+            throw new BusinessException("通知公告不存在");
         }
         BeanUtils.copyProperties(noticeDTO, ofNotice);
         if (noticeDTO.getPublishStatus() == 1) {

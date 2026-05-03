@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.cqf.auth.model.po.SysDept;
 import com.cqf.auth.model.vo.UserInfo;
 import com.cqf.auth.service.ISysDeptService;
+import com.cqf.common.exception.BusinessException;
 import com.cqf.common.result.LoginResult;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -58,7 +59,7 @@ public class AuthController {
             loginResult = JSONUtil.toBean((JSONObject) sysUserJson, LoginResult.class);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("类型转换异常");
+            throw new BusinessException("类型转换异常");
         }
         if (loginResult==null)return Result.error("用户登录过期");
         Long deptId = user.getDeptId();

@@ -1,0 +1,59 @@
+services:
+  frontend:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "8160:8160"
+    volumes:
+      - /root/smartOffice/nginx/html:/usr/share/nginx/html:ro
+      - /root/smartOffice/nginx/conf/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - gateway
+    networks:
+      - smart-office
+
+  gateway:
+    build: ./smart-office-gateway
+    ports:
+      - "8088:8088"
+    networks:
+      - smart-office
+
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "8081:8081"
+    networks:
+      - smart-office
+
+  knowledge-service:
+    build: ./knowledge-service
+    ports:
+      - "8083:8083"
+    networks:
+      - smart-office
+
+  ticket-service:
+    build: ./ticket-service
+    ports:
+      - "8084:8084"
+    networks:
+      - smart-office
+
+  office-service:
+    build: ./office-service
+    ports:
+      - "8085:8085"
+    networks:
+      - smart-office
+
+  ai-service:
+    build: ./ai-service
+    ports:
+      - "8086:8085"
+    networks:
+      - smart-office
+
+networks:
+  smart-office:
+    driver: bridge

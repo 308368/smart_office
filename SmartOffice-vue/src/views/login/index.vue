@@ -146,6 +146,7 @@ const generateWxQrcode = () => {
       scope: 'snsapi_login',
       // redirect_uri: 'http://tjxt-user-t.itheima.net/xuecheng/auth/wxLogin',
       redirect_uri: 'http://localhost:8160/api/auth/wxLogin',
+      // redirect_uri: 'http://192.168.220.100:8160/api/auth/wxLogin',
       state: 'wxlogin',
       style: 'black',
       href: 'data:text/css;,.wxqrcode_info{display:none !important}'

@@ -5,6 +5,7 @@ import com.cqf.auth.mapper.SysUserMapper;
 import com.cqf.auth.model.dto.LoginDTO;
 import com.cqf.auth.model.po.SysUser;
 import com.cqf.auth.service.AuthService;
+import com.cqf.common.exception.BusinessException;
 import com.cqf.common.enums.LoginResultEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -33,7 +34,7 @@ public class PasswordAuthServiceImpl implements AuthService {
             throw new UsernameNotFoundException(LoginResultEnum.USERNAME_ERROR.getMessage());
         }
         if (!passwordEncoder.matches(password, sysUser.getPassword())) {
-            throw new RuntimeException(LoginResultEnum.PASSWORD_ERROR.getMessage());
+            throw new BusinessException(LoginResultEnum.PASSWORD_ERROR.getMessage());
         }
         return sysUser;
     }

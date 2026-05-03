@@ -8,6 +8,7 @@ import com.cqf.auth.model.dto.LoginDTO;
 import com.cqf.auth.model.po.SysRole;
 import com.cqf.auth.model.po.SysUser;
 import com.cqf.auth.service.AuthService;
+import com.cqf.common.exception.BusinessException;
 import com.cqf.common.result.LoginResult;
 import com.cqf.common.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +51,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             loginDto = JSONUtil.toBean(s, LoginDTO.class);
         } catch (Exception e) {
             log.info("认证请求不符合项目要求:{}", s);
-            throw new RuntimeException("认证请求数据格式不对");
+            throw new BusinessException("认证请求数据格式不对");
         }
         String beanName = loginDto.getAuthType() + "_authservice";
         AuthService authService = applicationContext.getBean(beanName, AuthService.class);

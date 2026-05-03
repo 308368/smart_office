@@ -10,6 +10,7 @@ import com.cqf.office.model.po.OfLeave;
 import com.cqf.office.mapper.OfLeaveMapper;
 import com.cqf.office.model.vo.LeaveVo;
 import com.cqf.office.service.IOfLeaveService;
+import com.cqf.common.exception.BusinessException;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -70,7 +71,7 @@ public class OfLeaveServiceImpl extends ServiceImpl<OfLeaveMapper, OfLeave> impl
         Integer balanceDays = balance.get(leaveType);
         if (balanceDays != null){
             if (balanceDays < days) {
-                throw new RuntimeException(leaveType+"剩余天数不足");
+                throw new BusinessException(leaveType+"剩余天数不足");
             }
         }
 

@@ -10,6 +10,7 @@ import com.cqf.ai.mapper.ChatSessionMapper;
 import com.cqf.ai.model.vo.SessionVO;
 import com.cqf.ai.service.IChatMessageService;
 import com.cqf.ai.service.IChatSessionService;
+import com.cqf.common.exception.BusinessException;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
@@ -91,13 +92,10 @@ public class ChatSessionServiceImpl extends ServiceImpl<ChatSessionMapper, ChatS
                 .eq(ChatSession::getId, sessionId)
                 .set(ChatSession::getStatus, ChatSessionEnum.END.getStatus()));
         if (update <= 0){
-            throw new RuntimeException("删除会话失败");
+            throw new BusinessException("删除会话失败");
         }
         boolean remove = chatMessageService.remove(new LambdaQueryWrapper<ChatMessage>()
                 .eq(ChatMessage::getSessionId, sessionId));
-        if (!remove){
-            throw new RuntimeException("删除会话失败");
-        }
     }
 
     @Override

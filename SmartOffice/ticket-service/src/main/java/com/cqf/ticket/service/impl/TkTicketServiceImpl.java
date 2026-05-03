@@ -6,6 +6,7 @@ import com.cqf.api.client.AuthClient;
 import com.cqf.common.domain.po.SysUser;
 import com.cqf.common.domain.vo.DeptVo;
 import com.cqf.common.domain.vo.UserVo;
+import com.cqf.common.exception.BusinessException;
 import com.cqf.common.enums.TicketEnum;
 import com.cqf.common.result.Result;
 import com.cqf.ticket.mapper.TkTicketAttachmentMapper;
@@ -110,10 +111,10 @@ public class TkTicketServiceImpl extends ServiceImpl<TkTicketMapper, TkTicket> i
     @Override
     public void resolve(Long ticketId, String remark) {
         TkTicket tkTicket = tkTicketMapper.selectById(ticketId);
-        if (tkTicket == null)throw new RuntimeException("工单不存在");
+        if (tkTicket == null)throw new BusinessException("工单不存在");
         String loginUsername = SecurityContextHolder.getContext().getAuthentication().getName();
         Long userId = authClient.getUserId(loginUsername);
-        if (!tkTicket.getHandlerId().equals(userId))throw new RuntimeException("您没有权限处理此工单");
+        if (!tkTicket.getHandlerId().equals(userId))throw new BusinessException("您没有权限处理此工单");
         tkTicket.setStatus(TicketEnum.SOLVED.getStatus());
         tkTicket.setResolveTime(LocalDateTime.now());
         tkTicketMapper.updateById(tkTicket);
@@ -149,18 +150,21 @@ public class TkTicketServiceImpl extends ServiceImpl<TkTicketMapper, TkTicket> i
     @Override
     @Transactional
     public void transferTicket(Long ticketId, Long targetUserId, String reason) {
+
         TkTicket tkTicket = tkTicketMapper.selectById(ticketId);
-        if (tkTicket == null)throw new RuntimeException("工单不存在");
+        if (tkTicket == null)throw new BusinessException("工单不存在");
         tkTicket.setHandlerId(targetUserId);
         Result<UserVo> clientById = authClient.getById(targetUserId);
         UserVo data = clientById.getData();
         if (data.equals( null)){
-            throw new RuntimeException("工单提交人部门不存在");
+            throw new BusinessException("工单提交人部门不存在");
         }
         tkTicket.setHandlerName(data.getNickname());
         tkTicketMapper.updateById(tkTicket);
         //添加工单回复
-        currentProxy.addTicketReply(ticketId, reason, targetUserId, data.getNickname());
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        SysUser user = authClient.getUser(username);
+        currentProxy.addTicketReply(ticketId, reason, user.getId(), user.getNickname());
     }
 
     private String getDeptName(Long userId) {

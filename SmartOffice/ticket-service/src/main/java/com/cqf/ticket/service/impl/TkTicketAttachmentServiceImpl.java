@@ -5,6 +5,7 @@ import com.cqf.common.utils.SnowflakeIdGenerator;
 import com.cqf.ticket.model.po.TkTicketAttachment;
 import com.cqf.ticket.mapper.TkTicketAttachmentMapper;
 import com.cqf.ticket.service.ITkTicketAttachmentService;
+import com.cqf.common.exception.BusinessException;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.minio.MinioClient;
 import io.minio.UploadObjectArgs;
@@ -78,7 +79,7 @@ public class TkTicketAttachmentServiceImpl extends ServiceImpl<TkTicketAttachmen
         int insert = tkTicketAttachmentMapper.insert(tkTicketAttachment);
         if (insert <= 0) {
             log.info("添加文件信息失败");
-            throw new RuntimeException("添加文件信息失败");
+            throw new BusinessException("添加文件信息失败");
         }
     }
 
@@ -108,7 +109,7 @@ public class TkTicketAttachmentServiceImpl extends ServiceImpl<TkTicketAttachmen
             file.transferTo(tempFile);
             absolutePath = tempFile.getAbsolutePath();
         } catch (IOException e) {
-            throw new RuntimeException("创建临时文件失败");
+            throw new BusinessException("创建临时文件失败");
         }
         return absolutePath;
     }
@@ -127,7 +128,7 @@ public class TkTicketAttachmentServiceImpl extends ServiceImpl<TkTicketAttachmen
         } catch (Exception e) {
             e.printStackTrace();
             log.error("上传文件到minio出错,bucket:{},objectName:{},错误原因:{}", bucketFiles, objectName, e.getMessage(), e);
-            throw new RuntimeException("文件上传到minIO失败");
+            throw new BusinessException("文件上传到minIO失败");
 
         }
 

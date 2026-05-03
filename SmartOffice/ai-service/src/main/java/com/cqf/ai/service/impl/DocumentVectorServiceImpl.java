@@ -13,6 +13,7 @@ import org.springframework.ai.reader.ExtractedTextFormatter;
 import org.springframework.ai.reader.pdf.PagePdfDocumentReader;
 import org.springframework.ai.reader.pdf.config.PdfDocumentReaderConfig;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.security.core.Authentication;
@@ -29,6 +30,8 @@ import java.util.List;
 public class DocumentVectorServiceImpl implements IDocumentVectorService {
     private final KbDocumentClient kbChunkFeignClient;
     private final VectorStore vectorStore;
+    @Value("${minio.endpoint:http://192.168.220.100:9000}")
+    private String minioEndpoint;
 
 
     static {
@@ -40,7 +43,7 @@ public class DocumentVectorServiceImpl implements IDocumentVectorService {
         log.info("开始处理文档: documentId={}, fileName={}", msg.getDocumentId(), msg.getFileName());
         try {
             // 1. 获取文件资源
-            Resource resource = new UrlResource("http://192.168.220.100:9000"+msg.getFileUrl());
+            Resource resource = new UrlResource(minioEndpoint+msg.getFileUrl());
 
             // 2. 使用 Spring AI 的文档读取器读取 PDF（每页作为一个 Document）
             //创建PDF的读取器

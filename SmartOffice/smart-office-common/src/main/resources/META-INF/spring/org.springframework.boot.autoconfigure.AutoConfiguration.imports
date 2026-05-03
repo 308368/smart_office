@@ -2,3 +2,4 @@ com.cqf.common.config.MqConfig
 com.cqf.common.config.MyBatisConfig
 com.cqf.common.config.WebSocketConfig
 com.cqf.common.config.NoticeWebSocketConfig
+com.cqf.common.exception.GlobalExceptionHandler

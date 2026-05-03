@@ -15,6 +15,7 @@ import com.cqf.knowledge.mapper.KbDocumentMapper;
 import com.cqf.knowledge.model.po.KbDocumentChunk;
 import com.cqf.knowledge.model.po.KbKnowledgeBase;
 import com.cqf.knowledge.service.IKbDocumentService;
+import com.cqf.common.exception.BusinessException;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -104,7 +105,7 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
     @Transactional
     public DocumentVo addMediaFilesToDb(Long kbId,Long fileSize,String fileName,String extension,String objectName,String bucket) {
         KbKnowledgeBase kbKnowledgeBase = kbKnowledgeBaseMapper.selectById(kbId);
-        if (kbKnowledgeBase == null)throw new RuntimeException("知识库不存在");
+        if (kbKnowledgeBase == null)throw new BusinessException("知识库不存在");
         KbDocument kbDocument = new KbDocument();
         kbDocument.setKbId(kbId);
         kbDocument.setTitle(fileName);
@@ -118,14 +119,14 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
         int insert = kbDocumentMapper.insert(kbDocument);
         if (insert < 0) {
             log.error("保存文件信息到数据库失败,{}", kbDocument.toString());
-            throw new RuntimeException("保存文件信息到数据库失败");
+            throw new BusinessException("保存文件信息到数据库失败");
         }
         log.info("保存文件信息到数据库成功,{}", kbDocument.toString());
         kbKnowledgeBase.setDocCount(kbKnowledgeBase.getDocCount() + 1);
         int i = kbKnowledgeBaseMapper.updateById(kbKnowledgeBase);
         if (i < 0) {
             log.error("更新知识库文档数量失败,{}", kbKnowledgeBase.toString());
-            throw new RuntimeException("更新知识库文档数量失败");
+            throw new BusinessException("更新知识库文档数量失败");
         }
         log.info("更新知识库文档数量成功,{}", kbKnowledgeBase.toString());
         return BeanUtil.copyProperties(kbDocument, DocumentVo.class);
@@ -145,7 +146,7 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
         } catch (Exception e) {
             e.printStackTrace();
             log.error("上传文件到minio出错,bucket:{},objectName:{},错误原因:{}", bucketFiles, objectName, e.getMessage(), e);
-            throw new RuntimeException("文件上传到minIO失败");
+            throw new BusinessException("文件上传到minIO失败");
 
         }
 
@@ -183,7 +184,7 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
             tempFile = File.createTempFile("acknowledgeMinio", ".temp");
             file.transferTo(tempFile);
         } catch (Exception e) {
-            throw new RuntimeException("创建临时文件失败");
+            throw new BusinessException("创建临时文件失败");
         }
         return tempFile;
     }
@@ -234,7 +235,7 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
         KbDocument kbDocument = kbDocumentMapper.selectById(docId);
         if (kbDocument == null) {
             log.error("文档不存在,{}", docId);
-            throw new RuntimeException("文档不存在");
+            throw new BusinessException("文档不存在");
         }
 
         // 1. 先删除ES向量库中的向量数据
@@ -245,7 +246,7 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
                 log.info("删除ES向量成功, docId={}, vectorIds={}", docId, vectorIds);
             } catch (Exception e) {
                 log.error("删除ES向量失败, docId={}", docId, e);
-                throw new RuntimeException("删除ES向量失败");
+                throw new BusinessException("删除ES向量失败");
             }
         }
 
@@ -253,13 +254,13 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
         int i = kbDocumentMapper.deleteById(docId);
         if (i < 0) {
             log.error("删除文档失败,{}", docId);
-            throw new RuntimeException("删除文档失败");
+            throw new BusinessException("删除文档失败");
         }
         //删除分块中的数据
         int docId1 = kbDocumentChunkMapper.delete(new QueryWrapper<KbDocumentChunk>().eq("doc_id", docId));
         if (docId1 < 0) {
             log.error("删除文档分块失败,{}", docId);
-            throw new RuntimeException("删除文档分块失败");
+            throw new BusinessException("删除文档分块失败");
         }
         log.info("删除文档成功,{}", docId);
         KbKnowledgeBase kbKnowledgeBase = kbKnowledgeBaseMapper.selectById(kbId);
@@ -267,7 +268,7 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
         int i1 = kbKnowledgeBaseMapper.updateById(kbKnowledgeBase);
         if (i1 < 0) {
             log.error("更新知识库文档数量失败,{}", kbKnowledgeBase.toString());
-            throw new RuntimeException("更新知识库文档数量失败");
+            throw new BusinessException("更新知识库文档数量失败");
         }
         log.info("更新知识库文档数量成功,{}", kbKnowledgeBase.toString());
         //删除minio中的文档信息
@@ -299,7 +300,7 @@ public class KbDocumentServiceImpl extends ServiceImpl<KbDocumentMapper, KbDocum
         } catch (Exception e) {
             e.printStackTrace();
             log.error("minio文件删除失败,{}", e.getMessage());
-            throw new RuntimeException("minio文件删除失败");
+            throw new BusinessException("minio文件删除失败");
         }
     }
 }

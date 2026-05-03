@@ -13,6 +13,7 @@ import com.cqf.auth.model.po.SysRole;
 import com.cqf.auth.model.po.SysUser;
 import com.cqf.auth.model.vo.SysMenuVo;
 import com.cqf.auth.service.ISysMenuService;
+import com.cqf.common.exception.BusinessException;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cqf.common.result.LoginResult;
 import lombok.RequiredArgsConstructor;
@@ -92,7 +93,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
                 loginResult = JSONUtil.toBean((JSONObject) userJson, LoginResult.class);
             } catch (Exception e) {
                 e.printStackTrace();
-                throw new RuntimeException("类型转换失败");
+                throw new BusinessException("类型转换失败");
             }
             String[] roles = loginResult.getRoles();
 

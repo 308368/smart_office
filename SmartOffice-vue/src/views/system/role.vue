@@ -22,7 +22,11 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="createTime" label="创建时间" width="160" />
+          <el-table-column prop="createTime" label="创建时间" width="160">
+            <template #default="{ row }">
+              {{ formatDateTime(row.createTime) }}
+            </template>
+          </el-table-column>
           <el-table-column label="操作" width="150" fixed="right">
             <template #default="{ row }">
               <el-button type="primary" link @click.stop="handleEdit(row)">编辑</el-button>
@@ -85,6 +89,7 @@
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
 import { getRoleList, addRole, updateRole, deleteRole, getRoleMenus, assignMenus, getMenuList } from '@/api/user'
+import { formatDateTime } from '@/utils/format'
 
 const roleList = ref<any[]>([])
 const menuTree = ref<any[]>([])

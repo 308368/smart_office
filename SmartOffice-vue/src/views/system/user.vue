@@ -21,7 +21,7 @@
       <el-table-column prop="username" label="用户名" width="120" />
       <el-table-column prop="nickname" label="昵称" width="120" />
       <el-table-column prop="deptName" label="部门" width="120" />
-      <el-table-column prop="roleIds" label="角色" min-width="150">
+      <el-table-column prop="roleIds" label="角色" min-width="100">
         <template #default="{ row }">
           <el-tag v-for="roleId in row.roleIds" :key="roleId" type="info" size="small" style="margin-right: 4px">
             {{ getRoleName(roleId) }}
@@ -29,16 +29,20 @@
         </template>
       </el-table-column>
       <el-table-column prop="phone" label="手机号" width="130" />
-      <el-table-column prop="email" label="邮箱" min-width="150" />
-      <el-table-column prop="status" label="状态" width="80">
+      <el-table-column prop="email" label="邮箱" min-width="210" />
+      <el-table-column prop="status" label="状态" width="70">
         <template #default="{ row }">
           <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
             {{ row.status === 1 ? '正常' : '禁用' }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="createTime" label="创建时间" width="160" />
-      <el-table-column label="操作" width="150" fixed="right">
+      <el-table-column prop="createTime" label="创建时间" width="160">
+        <template #default="{ row }">
+          {{ formatDateTime(row.createTime) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="180" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
           <el-button type="warning" link @click="handleResetPwd(row)">重置密码</el-button>
@@ -98,6 +102,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
 import { getUserList, getUserById, getDeptList, getRoleList, addUser, updateUser, deleteUser, resetPassword } from '@/api/user'
+import { formatDateTime } from '@/utils/format'
 
 const userList = ref<any[]>([])
 const deptList = ref<any[]>([])

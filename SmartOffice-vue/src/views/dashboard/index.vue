@@ -16,7 +16,6 @@
           <div class="stat-value">{{ stats.docCount }}</div>
           <div class="stat-label">知识库文档</div>
         </div>
-        <div class="stat-trend up">↑12% 较上周</div>
       </div>
 
       <div class="stat-card">
@@ -27,7 +26,6 @@
           <div class="stat-value">{{ stats.pendingTicket }}</div>
           <div class="stat-label">待办工单</div>
         </div>
-        <div class="stat-trend up">↑2 较上周</div>
       </div>
 
       <div class="stat-card">
@@ -38,7 +36,6 @@
           <div class="stat-value">{{ stats.pendingLeave }}</div>
           <div class="stat-label">待审批</div>
         </div>
-        <div class="stat-trend down">↓1 较上周</div>
       </div>
 
       <div class="stat-card">
@@ -49,7 +46,6 @@
           <div class="stat-value">{{ stats.chatCount }}</div>
           <div class="stat-label">AI对话次数</div>
         </div>
-        <div class="stat-trend up">↑8 较上周</div>
       </div>
     </div>
 

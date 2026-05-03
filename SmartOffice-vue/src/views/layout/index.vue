@@ -74,7 +74,7 @@
     </el-aside>
 
     <!-- 主体区域 -->
-    <el-container>
+    <el-container class="main-wrapper">
       <!-- 头部 -->
       <el-header class="header">
         <div class="header-left">
@@ -91,7 +91,7 @@
 
           <el-dropdown @command="handleCommand">
             <div class="user-info">
-              <el-avatar :size="32" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" />
+              <el-avatar :size="32" :src="userStore.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'" />
               <span class="username">{{ userStore.nickname || userStore.username }}</span>
               <el-icon><ArrowDown /></el-icon>
             </div>
@@ -115,6 +115,7 @@
         </router-view>
       </el-main>
     </el-container>
+    <!-- 多余的 el-container 闭合标签已移除 -->
   </el-container>
 </template>
 
@@ -205,10 +206,15 @@ const handleCommand = (command: string) => {
       .el-menu-item {
         margin: 4px 8px;
         border-radius: 8px;
+        // height: 50px;
 
         &.is-active {
           background: #ECFDF5 !important;
         }
+      }
+
+      .el-sub-menu :deep(.el-menu-item) {
+        height: 36px;
       }
     }
   }
@@ -261,10 +267,16 @@ const handleCommand = (command: string) => {
     }
   }
 
+  .main-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+
   .main {
     background: #F3F4F6;
     padding: 20px;
-    overflow-y: auto;
+    flex: 1;
+    overflow: auto;
   }
 }
 

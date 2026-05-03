@@ -8,6 +8,7 @@ import com.cqf.ticket.model.po.TkTicket;
 import com.cqf.ticket.model.po.TkTicketReply;
 import com.cqf.ticket.mapper.TkTicketReplyMapper;
 import com.cqf.ticket.service.ITkTicketReplyService;
+import com.cqf.common.exception.BusinessException;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,7 +34,7 @@ public class TkTicketReplyServiceImpl extends ServiceImpl<TkTicketReplyMapper, T
     @Override
     public void reply(Long ticketId,String content) {
         TkTicket tkTicket = tkTicketMapper.selectById(ticketId);
-        if (tkTicket == null)throw new RuntimeException("工单不存在");
+        if (tkTicket == null)throw new BusinessException("工单不存在");
         String name = SecurityContextHolder.getContext().getAuthentication().getName();
         SysUser user = authClient.getUser(name);
         //添加工单回复

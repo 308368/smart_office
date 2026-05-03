@@ -19,6 +19,7 @@ import com.cqf.office.model.vo.ExpenseVo;
 import com.cqf.office.mapper.OfExpenseMapper;
 import com.cqf.office.mapper.OfExpenseItemMapper;
 import com.cqf.office.service.IOfExpenseService;
+import com.cqf.common.exception.BusinessException;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.minio.MinioClient;
 import io.minio.RemoveObjectArgs;
@@ -117,7 +118,7 @@ public class OfExpenseServiceImpl extends ServiceImpl<OfExpenseMapper, OfExpense
         }).toList();
         boolean saveBatch = expenseItemMapper.savebatch(list);
         if (!saveBatch) {
-            throw new RuntimeException("保存报销单明细失败");
+            throw new BusinessException("保存报销单明细失败");
         }
         return list;
     }
@@ -146,7 +147,7 @@ public class OfExpenseServiceImpl extends ServiceImpl<OfExpenseMapper, OfExpense
         ofExpense.setStatus(ExpenseStatusEnum.PENDING);
         int insert = expenseMapper.insert(ofExpense);
         if (insert <= 0) {
-            throw new RuntimeException("创建报销单失败");
+            throw new BusinessException("创建报销单失败");
         }
         return ofExpense;
     }
@@ -175,7 +176,7 @@ public class OfExpenseServiceImpl extends ServiceImpl<OfExpenseMapper, OfExpense
             file.transferTo(tempFile);
             absolutePath = tempFile.getAbsolutePath();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new BusinessException(500, e.getMessage(), e);
         }
         return absolutePath;
     }
@@ -194,7 +195,7 @@ public class OfExpenseServiceImpl extends ServiceImpl<OfExpenseMapper, OfExpense
         } catch (Exception e) {
             e.printStackTrace();
             log.error("上传文件到minio出错,bucket:{},objectName:{},错误原因:{}", bucketFiles, objectName, e.getMessage(), e);
-            throw new RuntimeException("文件上传到minIO失败");
+            throw new BusinessException("文件上传到minIO失败");
 
         }
 
@@ -204,7 +205,7 @@ public class OfExpenseServiceImpl extends ServiceImpl<OfExpenseMapper, OfExpense
     public ExpenseDetailVo getExpenseDetail(Long id) {
         OfExpense expense = this.getById(id);
         if (expense == null) {
-            throw new RuntimeException("报销记录不存在");
+            throw new BusinessException("报销记录不存在");
         }
 
         ExpenseDetailVo vo = new ExpenseDetailVo();
@@ -230,10 +231,10 @@ public class OfExpenseServiceImpl extends ServiceImpl<OfExpenseMapper, OfExpense
     public void cancel(Long id) {
         OfExpense expense = this.getById(id);
         if (expense == null) {
-            throw new RuntimeException("报销记录不存在");
+            throw new BusinessException("报销记录不存在");
         }
         if (expense.getStatus() != ExpenseStatusEnum.PENDING) {
-            throw new RuntimeException("只有待审批状态可以取消");
+            throw new BusinessException("只有待审批状态可以取消");
         }
         expense.setStatus(ExpenseStatusEnum.CANCELED);
         this.updateById(expense);
@@ -270,10 +271,10 @@ public class OfExpenseServiceImpl extends ServiceImpl<OfExpenseMapper, OfExpense
     public void approve(Long id, Boolean approved, String comment) {
         OfExpense expense = this.getById(id);
         if (expense == null) {
-            throw new RuntimeException("报销记录不存在");
+            throw new BusinessException("报销记录不存在");
         }
         if (expense.getStatus() != ExpenseStatusEnum.PENDING) {
-            throw new RuntimeException("只有待审批状态可以审批");
+            throw new BusinessException("只有待审批状态可以审批");
         }
 
         expense.setStatus(approved ? ExpenseStatusEnum.APPROVED : ExpenseStatusEnum.REJECTED);
@@ -288,7 +289,7 @@ public class OfExpenseServiceImpl extends ServiceImpl<OfExpenseMapper, OfExpense
         } catch (Exception e) {
             e.printStackTrace();
             log.error("minio文件删除失败,{}", e.getMessage());
-            throw new RuntimeException("minio文件删除失败");
+            throw new BusinessException("minio文件删除失败");
         }
     }
 }

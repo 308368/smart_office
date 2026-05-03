@@ -6,6 +6,7 @@ import com.cqf.knowledge.model.po.KbDocument;
 import com.cqf.knowledge.model.po.KbDocumentChunk;
 import com.cqf.knowledge.mapper.KbDocumentChunkMapper;
 import com.cqf.knowledge.service.IKbDocumentChunkService;
+import com.cqf.common.exception.BusinessException;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cqf.knowledge.service.IKbDocumentService;
 import lombok.RequiredArgsConstructor;
@@ -43,11 +44,11 @@ public class KbDocumentChunkServiceImpl extends ServiceImpl<KbDocumentChunkMappe
         }).toList();
         boolean b = kbDocumentChunkMapper.saveBatch(kbDocumentChunks);
         KbDocument document = kbDocumentService.getById(request.getChunks().get(0).getDocumentId());
-        if (document == null)throw new RuntimeException("文档不存在");
+        if (document == null)throw new BusinessException("文档不存在");
         document.setStatus(2);//状态 0待处理 1处理中 2已完成 3处理失败
         document.setChunkCount(chunks.size());
         boolean b1 = kbDocumentService.updateById(document);
-        if(!b1)throw new RuntimeException("更新文档状态失败");
+        if(!b1)throw new BusinessException("更新文档状态失败");
         //向前端推送解析成功消息 - 通过Feign调用office-service发送WebSocket消息
         String username = request.getUsername();
         webSocketFeignClient.sendChunkComplete(document.getKbId(), document.getId(), document.getTitle(), chunks.size(), username);

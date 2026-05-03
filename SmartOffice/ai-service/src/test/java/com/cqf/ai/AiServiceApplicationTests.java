@@ -11,7 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.List;
 import java.util.Map;
 
-@SpringBootTest
+@SpringBootTest(classes = AiServiceApplication.class)
 class AiServiceApplicationTests {
     @Autowired
     VectorStore vectorStoretest;
