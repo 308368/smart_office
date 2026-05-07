@@ -105,6 +105,7 @@ public class OfLeaveController {
     public Result<PageResult<LeavePendingVo>> pending(QueryParam queryParam) {
         Page<OfLeave> ofLeavePage = leaveService.lambdaQuery()
                 .eq(OfLeave::getStatus, LeaveEnum.PENDING.getCode())
+                .orderByDesc(OfLeave::getCreateTime)
                 .page(new Page<>(queryParam.getCurrent(), queryParam.getSize()));
         PageResult<LeavePendingVo> leavePendingVoPageResult = new PageResult<>();
         leavePendingVoPageResult.setCurrent((int) ofLeavePage.getCurrent());

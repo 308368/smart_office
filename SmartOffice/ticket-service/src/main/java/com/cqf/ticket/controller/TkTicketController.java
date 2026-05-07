@@ -54,6 +54,7 @@ public class TkTicketController {
                 .eq(queryParam.getStatus() != null, TkTicket::getStatus, queryParam.getStatus())
                 .eq(queryParam.getCategory() != null, TkTicket::getCategory, queryParam.getCategory())
                 .like(queryParam.getTitle() != null, TkTicket::getTitle, queryParam.getTitle())
+                .orderByDesc(TkTicket::getCreateTime)
                 //TODO 只显示当前用户提交的工单
 //                .eq(queryParam.getMyOnly().equals(true), TkTicket::getSubmitterName, username)
                 .page(new Page<>(queryParam.getCurrent(), queryParam.getSize()));

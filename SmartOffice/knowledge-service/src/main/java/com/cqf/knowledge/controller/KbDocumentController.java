@@ -76,15 +76,17 @@ public class KbDocumentController {
     public List<DocumentVo> userDoc(@PathVariable("isOwe") Integer isOwe) {
         List<KbDocument> kbDocuments=null;
         if (isOwe==1){
-            kbDocuments = kbDocumentService.list();
+            kbDocuments = kbDocumentService.lambdaQuery()
+                    .eq(KbDocument::getStatus, 2)//状态 0待处理 1处理中 2已完成 3处理失败);
+                    .list();
         }else {
             SecurityContext context = SecurityContextHolder.getContext();
             String username = context.getAuthentication().getName();
             Long userId = authClient.getUserId(username);
             kbDocuments = kbDocumentService.lambdaQuery()
                     .eq(KbDocument::getCreateBy, userId)
-                    .or()
-                    .eq(KbDocument::getStatus, KnowledgeStatusEnum.PUBLIC.getStatus())
+//                    .or()
+                    .eq(KbDocument::getStatus, 2)//状态 0待处理 1处理中 2已完成 3处理失败
                     .list();
         }
         Set<Long> kbIds = kbDocuments.stream().map(KbDocument::getKbId).collect(Collectors.toSet());
