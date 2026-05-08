@@ -21,6 +21,9 @@ logs/
 # Claude
 .claude/
 
+# Docs (敏感文档)
+docs/简历知识点解析.md
+
 # Node
 node_modules/
 npm-debug.log
