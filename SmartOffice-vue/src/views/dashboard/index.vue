@@ -54,7 +54,7 @@
       <!-- 对话趋势图 -->
       <div class="page-card chart-card">
         <div class="card-header">
-          <h3>📈 最近对话趋势</h3>
+          <h3>对话趋势</h3>
         </div>
         <div class="chart-container">
           <div class="simple-chart">
@@ -71,8 +71,8 @@
       <!-- 待处理工单 -->
       <div class="page-card">
         <div class="card-header">
-          <h3>📋 待处理工单</h3>
-          <el-button type="primary" link @click="$router.push('/ticket')">查看全部</el-button>
+          <h3>待处理工单</h3>
+          <!-- <el-button type="primary" link @click="$router.push('/ticket')">查看全部</el-button> -->
         </div>
         <div class="ticket-list">
           <div class="ticket-item" v-for="item in pendingTickets" :key="item.id" @click="$router.push(`/ticket/detail/${item.id}`)">
@@ -95,8 +95,8 @@
       <!-- 通知公告 -->
       <div class="page-card">
         <div class="card-header">
-          <h3>📰 通知公告</h3>
-          <el-button type="primary" link @click="$router.push('/notice')">查看全部</el-button>
+          <h3>通知公告</h3>
+          <!-- <el-button type="primary" link @click="$router.push('/notice')">查看全部</el-button> -->
         </div>
         <div class="notice-list">
           <div class="notice-item" v-for="item in notices" :key="item.id" @click="$router.push('/notice')">
@@ -116,7 +116,8 @@
       <!-- AI快捷入口 -->
       <div class="page-card">
         <div class="card-header">
-          <h3>🤖 AI 快捷入口</h3>
+          <el-icon size="18" color="#10B981"><ChatDotRound /></el-icon>
+          <h3>AI 助手</h3>
         </div>
         <div class="ai-quick">
           <div class="quick-input">
@@ -349,14 +350,16 @@ const askQuick = (q: string) => {
   .page-card {
     .card-header {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
       align-items: center;
+      gap: 8px;
       margin-bottom: 16px;
 
       h3 {
         font-size: 16px;
         font-weight: 600;
         color: #1F2937;
+        margin: 0;
       }
     }
   }

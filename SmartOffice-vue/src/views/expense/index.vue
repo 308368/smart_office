@@ -8,7 +8,7 @@
     <div class="expense-content">
       <!-- 左侧：报销表单 -->
       <div class="expense-form-card">
-        <h3>📝 报销申请</h3>
+        <h3>报销申请</h3>
         <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
           <el-form-item label="报销类型" prop="expenseType">
             <el-select v-model="form.expenseType" placeholder="请选择报销类型" style="width: 100%">
@@ -67,7 +67,7 @@
 
       <!-- 右侧：报销记录 -->
       <div class="expense-record-card">
-        <h3>📋 报销记录</h3>
+        <h3>报销记录</h3>
         <div class="table-wrap">
           <el-table :data="expenseList" size="small" @row-click="handleView">
             <el-table-column prop="expenseType" label="类型" width="60" />

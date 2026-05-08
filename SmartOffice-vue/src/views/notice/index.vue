@@ -47,8 +47,8 @@
       >
         <div class="notice-icon" :class="'type-' + item.noticeType">
           <span v-if="!item.isRead && activeTab !== 'draft'" class="unread-dot"></span>
-          <span v-else-if="item.noticeType === 1">📢</span>
-          <span v-else>📋</span>
+          <span v-else-if="item.noticeType === 1" class="icon-notice">通知</span>
+          <span v-else class="icon-notice">公告</span>
         </div>
         <div class="notice-content">
           <div class="notice-title">
@@ -368,7 +368,8 @@ const handleDelete = async (item: any) => {
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 20px;
+        font-size: 14px;
+        font-weight: 500;
         flex-shrink: 0;
 
         .unread-dot {
@@ -378,14 +379,21 @@ const handleDelete = async (item: any) => {
           border-radius: 50%;
         }
 
+        .icon-notice {
+          font-size: 12px;
+          font-weight: 500;
+        }
+
         &.type-1 {
           background: #EFF6FF;
           border-radius: 8px;
+          color: #3B82F6;
         }
 
         &.type-2 {
           background: #FEF3C7;
           border-radius: 8px;
+          color: #F59E0B;
         }
       }
 

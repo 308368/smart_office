@@ -102,7 +102,7 @@ export const connectWebSocket = () => {
           ? content.substring(0, 50) + '...'
           : content
         ElNotification({
-          title: '📢 ' + (data.title || '新公告'),
+          title: (data.title || '新公告'),
           message: displayContent,
           type: 'info',
           position: 'top-right',

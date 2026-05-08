@@ -8,7 +8,7 @@
     <div class="leave-content">
       <!-- 左侧：请假表单 -->
       <div class="leave-form-card">
-        <h3>📝 请假申请</h3>
+        <h3>请假申请</h3>
         <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
           <el-form-item label="请假类型" prop="leaveType">
             <el-radio-group v-model="form.leaveType">
@@ -54,7 +54,7 @@
       <div class="leave-right">
         <!-- 剩余假期 -->
         <div class="balance-card">
-          <h3>📊 剩余假期</h3>
+          <h3>剩余假期</h3>
           <div class="balance-list">
             <div class="balance-item" v-for="(value, key) in leaveBalance" :key="key">
               <span class="balance-type">{{ key }}</span>
@@ -65,7 +65,7 @@
 
         <!-- 请假记录 -->
         <div class="record-card">
-          <h3>📋 请假记录</h3>
+          <h3>请假记录</h3>
           <div class="table-wrap">
             <el-table :data="leaveList" size="small" @row-click="handleView">
               <el-table-column prop="leaveType" label="类型" width="55" />

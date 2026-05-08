@@ -40,7 +40,7 @@
     <div class="chat-main">
       <!-- 顶部知识库选择 -->
       <div class="chat-header">
-        <h2>🤖 AI 智能助手</h2>
+        <h2><el-icon color="#10B981"><ChatDotRound /></el-icon> AI 智能助手</h2>
         <div class="kb-selector">
           <el-select v-model="selectedKbId" placeholder="请选择知识库" clearable @change="handleKbChange">
             <el-option
@@ -74,7 +74,7 @@
         <div class="chat-messages">
           <!-- 欢迎消息 -->
           <div class="message ai-message" v-if="messages.length === 0">
-            <div class="avatar">🤖</div>
+            <div class="avatar ai-avatar"></div>
             <div class="message-content">
               <p>您好！我是您的智能办公助手</p>
               <p>我可以帮您解答公司制度、流程等问题，也可以帮您查找知识库中的文档内容。</p>
@@ -89,7 +89,17 @@
             v-for="(msg, index) in messages"
             :key="index"
           >
-            <div class="avatar">{{ msg.role === 'user' ? '👤' : '🤖' }}</div>
+            <!-- 用户头像 -->
+            <div v-if="msg.role === 'user'" class="avatar user-avatar">
+              <el-image
+                v-if="userStore.avatar"
+                :src="userStore.avatar"
+                class="avatar-img"
+              />
+              <span v-else>👤</span>
+            </div>
+            <!-- AI头像 -->
+            <div v-else class="avatar ai-avatar"></div>
             <div class="message-content">
               <div class="content-text" v-html="formatContent(msg.content)"></div>
               <!-- AI思考中 -->
@@ -650,8 +660,28 @@ const formatContent = (content: string) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 20px;
+          font-size: 18px;
+          font-weight: 600;
           flex-shrink: 0;
+          overflow: hidden;
+
+          &.ai-avatar {
+            background: #ECFDF5;
+            color: #10B981;
+            font-size: 20px;
+            &::after { content: '🤖'; font-size: 18px; }
+          }
+
+          &.user-avatar {
+            background: #10B981;
+            color: #fff;
+          }
+
+          .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
         }
 
         .message-content {

@@ -37,12 +37,12 @@
         </el-descriptions>
 
         <div class="content-section">
-          <h3>📝 工单内容</h3>
+          <h3>工单内容</h3>
           <div class="content-text">{{ ticketInfo.content }}</div>
         </div>
 
         <div class="content-section" v-if="ticketInfo.processResult">
-          <h3>✅ 处理结果</h3>
+          <h3>处理结果</h3>
           <div class="content-text">{{ ticketInfo.processResult }}</div>
         </div>
 
@@ -61,7 +61,7 @@
 
       <!-- 右侧：处理记录 -->
       <div class="right-panel">
-        <h3>📋 处理记录</h3>
+        <h3>处理记录</h3>
         <div class="flow-timeline">
           <div class="flow-item" v-for="flow in ticketInfo.flows" :key="flow.id">
             <div class="flow-dot"></div>
@@ -78,7 +78,7 @@
 
         <!-- 回复区域 -->
         <div class="reply-section">
-          <h3>💬 沟通记录</h3>
+          <h3>沟通记录</h3>
           <div class="reply-list">
             <div class="reply-item" v-for="reply in ticketInfo.replies" :key="reply.id">
               <div class="reply-user">{{ reply.userName }}</div>
