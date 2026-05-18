@@ -67,7 +67,7 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
     @Lazy
     private IChatMessageService chatMessageService;
     private final AuthClient authClient;
-    @Value("${spring.ai.openai.chat.model:qwen-max}")
+    @Value("${spring.ai.openai.chat.options.model:qwen-max}")
     private String MODEL;
 
     @Override
